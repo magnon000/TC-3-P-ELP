@@ -7,6 +7,9 @@ import (
 func input(oui string){
 	fmt.Println(oui)
 
+
+
+
 	//blablabla
 
 	matriceA := make([][]float64, tailleAy)
@@ -18,6 +21,8 @@ func input(oui string){
 		for x := 0; x<tailleAx; x++ {
 			ligne[x] = float64(coefficientnumérique)
 		}
+		matriceA[y] = ligne
+	
 	}
 
 	//matrice B
@@ -26,5 +31,6 @@ func input(oui string){
 		for x := 0; x<tailleBx; x++ {
 			ligne[x] = float64(coefficientnumérique)
 		}
+		matriceB[y] = ligne
 	}
 }
