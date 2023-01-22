@@ -51,7 +51,7 @@ func workerMultiplicationPartielle(wg *sync.WaitGroup, jobs chan *portionTodo, r
 	ligne := make([]float64, nombreColonnes)
 	for x:=0; x<nombreColonnes; x++{
 		ligne[x] = 0
-		for i:=0; x<tailleRecurrente; i++ {
+		for i:=0; i<tailleRecurrente; i++ {
 			ligne[i] += (*job.ligneYmatriceA)[i] * (*job.matriceB)[i][x]
 		}
 	}
@@ -68,8 +68,8 @@ func managerMultiplicationPartielle(matriceA [][]float64, matriceB [][]float64) 
 	matriceC := make([][]float64, nombreWorkers)
 
 	var wg sync.WaitGroup
-	var jobsChannel chan *portionTodo
-	var resultChannel chan *portionFinished
+	jobsChannel := make(chan *portionTodo, nombreWorkers)
+	resultChannel := make(chan *portionFinished, nombreWorkers)
 
 	for i:=0; i<nombreWorkers; i++ {
 		wg.Add(1)
@@ -80,7 +80,6 @@ func managerMultiplicationPartielle(matriceA [][]float64, matriceB [][]float64) 
 		var portion portionTodo
 		portion = portionTodo{positionY: i, matriceB: &matriceB, ligneYmatriceA: &(matriceA[i])}
 		jobsChannel <- &portion
-		fmt.Println("tAAAAAAAAAAA")
 	}
 
 	wg.Wait()
@@ -98,10 +97,10 @@ func main(){
 	fmt.Println("Test")
 	//input("test2")
 
-	tailleAx:=3
-	tailleAy:=3
-	tailleBx:=3
-	tailleBy:=3
+	tailleAx:=1000
+	tailleAy:=1000
+	tailleBx:=1000
+	tailleBy:=1000
 
 	matriceA := make([][]float64, tailleAy)
 	matriceB := make([][]float64, tailleBy)
@@ -142,7 +141,8 @@ func main(){
 	start2 := time.Now()
 	fmt.Println(managerMultiplicationPartielle(matriceA, matriceB))
 	end2 := time.Now()
-	fmt.Println("Durée du calcul 1 thread :",end2.Sub(start2))
+	fmt.Println("Durée du calcul 1 thread :",end1.Sub(start1))
+	fmt.Println("Durée du calcul avec goroutines :",end2.Sub(start2))
 
 
 }
