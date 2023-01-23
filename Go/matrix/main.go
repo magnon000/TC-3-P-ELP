@@ -76,11 +76,13 @@ func managerMultiplicationPartielle(matriceA [][]float64, matriceB [][]float64) 
 		go workerMultiplicationPartielle(&wg,jobsChannel,resultChannel)
 	}
 
-	for i:=0; i<nombreWorkers; i++ {
-		var portion portionTodo
-		portion = portionTodo{positionY: i, matriceB: &matriceB, ligneYmatriceA: &(matriceA[i])}
-		jobsChannel <- &portion
-	}
+	go func(){
+		for i:=0; i<nombreWorkers; i++ {
+			var portion portionTodo
+			portion = portionTodo{positionY: i, matriceB: &matriceB, ligneYmatriceA: &(matriceA[i])}
+			jobsChannel <- &portion
+		}
+	}()
 
 	wg.Wait()
 
