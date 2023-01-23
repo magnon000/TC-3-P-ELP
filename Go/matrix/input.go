@@ -25,28 +25,28 @@ func input() {
 
 
 
-	//blablabla
-	mA, nA := len(A), len(A[0])
-	nB, pB := len(B), len(B[0])
-	matriceA := make([][]float64, tailleAy)
-	matriceB := make([][]float64, tailleBy)
+	// //blablabla
+	// mA, nA := len(A), len(A[0])
+	// nB, pB := len(B), len(B[0])
+	// matriceA := make([][]float64, tailleAy)
+	// matriceB := make([][]float64, tailleBy)
 
-	//matrice A
-	for y := 0; y < tailleAy; y++ {
-		ligne := make([]float64, tailleAx)
-		for x := 0; x < tailleAx; x++ {
-			ligne[x] = float64(coefficientnumérique)
-		}
-		matriceA[y] = ligne
+	// //matrice A
+	// for y := 0; y < tailleAy; y++ {
+	// 	ligne := make([]float64, tailleAx)
+	// 	for x := 0; x < tailleAx; x++ {
+	// 		ligne[x] = float64(coefficientnumérique)
+	// 	}
+	// 	matriceA[y] = ligne
 	
-	}
+	// }
 
-	//matrice B
-	for y := 0; y < tailleAy; y++ {
-		ligne := make([]float64, tailleBx)
-		for x := 0; x < tailleBx; x++ {
-			ligne[x] = float64(coefficientnumérique)
-		}
-		matriceB[y] = ligne
-	}
+	// //matrice B
+	// for y := 0; y < tailleAy; y++ {
+	// 	ligne := make([]float64, tailleBx)
+	// 	for x := 0; x < tailleBx; x++ {
+	// 		ligne[x] = float64(coefficientnumérique)
+	// 	}
+	// 	matriceB[y] = ligne
+	// }
 }
