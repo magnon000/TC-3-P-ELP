@@ -49,6 +49,31 @@
     - [Declaration notation](#declaration-notation)
     - [Arrow functions](#arrow-functions)
     - [The call stack](#the-call-stack)
+    - [Optional Arguments](#optional-arguments)
+    - [Closure](#closure)
+    - [Recursion](#recursion)
+    - [Growing functions](#growing-functions)
+    - [Functions and side effects](#functions-and-side-effects)
+    - [Summary](#summary-2)
+    - [3 exercices](#3-exercices-1)
+  - [4.Data Structures: Objects and Arrays](#4data-structures-objects-and-arrays)
+    - [Properties](#properties)
+    - [Methods](#methods)
+    - [Objects](#objects)
+    - [Mutability](#mutability)
+    - [Array loops](#array-loops)
+    - [Further arrayology](#further-arrayology)
+    - [Strings and their properties](#strings-and-their-properties)
+    - [Rest parameters](#rest-parameters)
+    - [The Math object](#the-math-object)
+    - [JSON](#json)
+    - [Summary](#summary-3)
+    - [4 exercices](#4-exercices)
+  - [5.Higher-Order Functions](#5higher-order-functions)
+    - [Abstraction](#abstraction)
+    - [Abstracting repetition](#abstracting-repetition)
+    - [Higher-order functions](#higher-order-functions)
+    - [Script data set](#script-data-set)
 ---
 ## 0.Introduction
 > JavaScript is ridiculously ***liberal*** in what it allows. It leaves space for a lot of techniques that are impossible in more rigid languages, and as you will see (for example in Chapter 10), it can be used to overcome some of JavaScript’s shortcomings.
@@ -99,18 +124,18 @@ escaping : \    (ex. \n)
 * ***typeof*** operator (numbers, strings, Booleans, and undefined values)
 ```
 console.log(typeof 4.5)
-// → number
+// -> number
 console.log(typeof "x")
-// → string
+// -> string
 ```
 ### Binary operators
 ```
 console.log(3 > 2)
-// → true
+// -> true
 console.log("Aardvark" <= "Zoroaster")
-// → true
+// -> true
 console.log("Itchy" != "Scratchy")
-// → true
+// -> true
 console.log("Z" < "a")
 // -> true
 console.log("?" < "Z")
@@ -119,7 +144,9 @@ console.log("?" < "Z")
 > The way strings are ordered is roughly alphabetic but not really what you’d expect to see in a dictionary: uppercase letters are always “less” than lowercase ones, so `"Z" < "a"`, and nonalphabetic characters (!, -, and so on) are also included in the ordering. When comparing strings, JavaScript goes over the characters from left to right, comparing the Unicode codes one by one.
 ```
 console.log(NaN == NaN)
-// → false
+// -> false
+console.log(NaN === NaN);
+// -> false
 ```
 > There is **only one** value in JavaScript that is not equal to itself, and that is `NaN` (“not a number”). `NaN` is supposed to denote the result of a nonsensical computation, and as such, it isn’t equal to the result of any other nonsensical computations.
 ### Logical operators
@@ -129,9 +156,9 @@ console.log(NaN == NaN)
 ### Ternary operator (conditional operator)
 ```
 console.log(true ? 1 : 2);
-// → 1
+// -> 1
 console.log(false ? 1 : 2);
-// → 2
+// -> 2
 ```
 ### Empty values
 > There are two special values, written ***null*** and ***undefined***, that are used to denote the absence of a meaningful value. They are themselves values, but they carry no information.
@@ -142,28 +169,28 @@ console.log(false ? 1 : 2);
 ### Automatic type conversion (type coercion)
 ```
 console.log(8 * null)
-// → 0
+// -> 0
 console.log("5" - 1)
-// → 4
+// -> 4
 console.log(undefined + 1)
-// → 51
+// -> 51
 console.log(NaN * 2)
-// → NaN
+// -> NaN
 console.log(false == 0)
-// → true
+// -> true
 ```
 > When an operator is applied to the “wrong” type of value, JavaScript will quietly convert that value to the type it needs, using a set of rules that often aren’t what you want or expect. This is called type coercion. 
 
 > When something that doesn’t map to a number in an obvious way (such as "five" or undefined) is converted to a number, you get the value NaN. Further arithmetic operations on NaN keep producing NaN, so if you find yourself getting one of those in an unexpected place, look for accidental type conversions.
 ```
 console.log(null == undefined);
-// → true
+// -> true
 console.log(null == 0);
-// → false
+// -> false
 console.log(undefined == NaN);
-// → false
+// -> false
 console.log(NaN == NaN);
-// → false
+// -> false
 ```
 >  You should get true when both values are the same, except in the case of NaN. But when the types differ, JavaScript uses a complicated and confusing set of rules to determine what to do. In most cases, it just tries to convert one of the values to the other value’s type. However, when null or undefined occurs on either side of the operator, it produces true only if both sides are one of null or undefined.
 
@@ -176,13 +203,13 @@ console.log(NaN == NaN);
 > The logical operators `&&` and `||` handle values of different types in a peculiar way. They will convert the value on their left side to Boolean type in order to decide what to do, but depending on the operator and the result of that conversion, they will return either the original left-hand value or the right-hand value.
 ```
 console.log(null || "user")
-// → user
+// -> user
 console.log("Agnes" || "user")
-// → Agnes
+// -> Agnes
 console.log(undefined || null)
-// → null
+// -> null
 console.log(null || undefined)
-// → undefined
+// -> undefined
 ```
 > The `||` operator, for example, will return the value to its left when that can be converted to true and will return the value on its right otherwise. This has the expected effect when the values are Boolean and does something analogous for values of other types.
 ```
@@ -194,13 +221,13 @@ console.log(a_mod||a)
 > We can use this functionality as a way to **fall back** on a **default value**. If you have a value that might be empty, you can put || after it with a replacement value. If the initial value can be converted to false, you’ll get the replacement instead. The rules for converting strings and numbers to Boolean values state that 0, NaN, and the empty string ("") count as false, while all the other values count as true.
 ```
 console.log(null && "user")
-// → null
+// -> null
 console.log("Agnes" && "user")
-// → user
+// -> user
 console.log(0/0 && null)
-// → NaN
+// -> NaN
 console.log(undefined && 0/0)
-// → undefined
+// -> undefined
 ```
 > The `&&` operator works similarly but the other way around. When the value to its left is something that converts to false, it returns that value, and otherwise it returns the value on its right.
 
@@ -232,7 +259,7 @@ After a binding has been defined, its name can be used as an expression.
 var name = "Ayda";
 const greeting = "Hello ";
 console.log(greeting + name);
-// → Hello Ayda
+// -> Hello Ayda
 ```
 * `var` (short for “variable”), is the way bindings were declared in pre-2015 JavaScript. 
 * `var` differs from `let` in the next chapter (3). 
@@ -304,8 +331,8 @@ while (number <= 12) {
   console.log(number);
   number = number + 2;
 }
-// → 0
-// → 2
+// -> 0
+// -> 2
 //   … etcetera
 ```
 > A `do` loop is a control structure similar to a while loop. It differs only on one point: a do loop always executes its body at least once, and it starts testing whether it should stop only after that first execution. 
@@ -325,8 +352,8 @@ console.log(yourName);
 for (let number = 0; number <= 12; number = number + 2) {
   console.log(number);
 }
-// → 0
-// → 2
+// -> 0
+// -> 2
 //   … etcetera
 ```
 > The parentheses after a for keyword must contain `two semicolons`. The part before the first semicolon `initializes` the loop, usually by defining a binding. The second part is the expression that `checks` whether the loop must continue. The final part `updates` the state of the loop after every iteration. In most cases, this is shorter and clearer than a while construct.
@@ -339,7 +366,7 @@ for (let current = 20; ; current = current + 1) {
     break;
   }
 }
-// → 21
+// -> 21
 ```
 no `break` -> `infinite loop`
 > The `continue` keyword is similar to break, in that it influences the progress of a loop. When continue is encountered in a loop body, control jumps out of the body and continues with the loop’s next iteration.
@@ -388,7 +415,7 @@ const square = function(x) {
 };
 
 console.log(square(12));
-// → 144
+// -> 144
 ```
 > A function is created with an expression that starts with the keyword `function`. Functions have a set of `parameters` (in this case, only x) and a `body`, which contains the statements that are to be executed when the function is called. The function body of a function created this way must always be `wrapped in braces`, even when it consists of only a single statement.
 >
@@ -407,11 +434,11 @@ if (true) {
   let y = 20;
   var z = 30;
   console.log(x + y + z);
-  // → 60
+  // -> 60
 }
 // y is not visible here
 console.log(x + z);
-// → 40
+// -> 40
 ```
 > Bindings declared with `let` and `const` are in fact local to the block that they are declared in, so if you create one of those inside of a loop, the code before and after the loop cannot “see” it. In pre-2015 JavaScript, only functions created new scopes, so old-style bindings, created with the var keyword, are visible throughout the whole function that they appear in—or throughout the global scope, if they are not in a function.
 ```
@@ -421,9 +448,9 @@ const halve = function(n) {
 
 let n = 10;
 console.log(halve(100));
-// → 50
+// -> 50
 console.log(n);
-// → 10
+// -> 10
 ```
 > The exception is when multiple bindings have the same name—in that case, code can see only the innermost one.
 ### Nested scope
@@ -493,5 +520,314 @@ const horn = () => {
 ```
 > Arrow functions were added in 2015, mostly to make it possible to write small function expressions in a less verbose way. We’ll be using them a lot in Chapter 5.
 ### The call stack
-https://eloquentjavascript.net/03_functions.html
+> Because a function has to jump back to the place that called it when it returns, the computer must remember the context from which the call happened. The place where the computer stores this context is the `call stack`. 
+
+> Every time a function is called, the current context is stored on top of this stack. When a function returns, it removes the top context from the stack and uses that context to continue execution. (`LIFO`)
+### Optional Arguments
+```
+function square(x) { return x * x; }
+console.log(square(4, true, "hedgehog"));
+// → 16
+```
+> JavaScript is extremely broad-minded about the number of arguments you pass to a function. If you pass too many, the extra ones are `ignored`. If you pass too few, the missing parameters get assigned the value `undefined`.
+
+> The upside is that this behavior can be used to allow a function to be called with different numbers of arguments.
+```
+function minus(a, b) {
+  if (b === undefined) return -a;
+  else return a - b;
+}
+
+console.log(minus(10));
+// → -10
+console.log(minus(10, 5));
+// → 5
+```
+> If you write an = operator after a parameter, followed by an expression, the value of that expression will replace the argument when it is not given.
+```
+function power(base, exponent = 2) {
+```
+### Closure
+```
+tion wrapValue(n) {
+  let local = n;
+  return () => local;
+}
+
+let wrap1 = wrapValue(1);
+let wrap2 = wrapValue(2);
+console.log(wrap1());
+// → 1
+console.log(wrap2());
+// → 2
+```
+> This feature—being able to reference a specific instance of a local binding in an enclosing scope—is called `closure`. A function that references bindings from local scopes around it is called a `closure`.
+
+> A good mental model is to think of function values as containing both the code in their body and the environment in which they are created.
+### Recursion
+> A function that calls itself is called `recursive`. In typical JavaScript implementations, it’s about three times `slower` than the looping version.
+### Growing functions
+two more or less natural ways for functions:
+* writing similar code multiple times.
+* need some functionality that you haven’t written yet and that sounds like it deserves its own function. 
+### Functions and side effects
+> Functions can be roughly divided into those that are called for their side effects and those that are called for their return value. 
+
+> A `pure` function is a specific kind of value-producing function that not only has no side effects but also doesn’t rely on side effects from other code—for example, it doesn’t read global bindings whose value might change. 
+### Summary
+```
+// Define f to hold a function value
+const f = function(a) {
+  console.log(a + 2);
+};
+
+// Declare g to be a function
+function g(a, b) {
+  return a * b * 3.5;
+}
+
+// A less verbose function value
+let h = a => a % 3;
+```
+> Parameters and bindings declared in a given scope are local and not visible from the outside. Bindings declared with var behave differently—they end up in the nearest function scope or the global scope.
+
+> Separating the tasks your program performs into different functions is helpful.
+### [3 exercices](https://eloquentjavascript.net/code/#3)
+## 4.Data Structures: Objects and Arrays
+> Objects allow us to group values—including other objects—to build more complex structures.
+
+> JavaScript provides a data type specifically for storing sequences of values. It is called an array and is written as a list of values between square brackets, separated by commas.
+```
+let listOfNumbers = [2, 3, 5, 7, 11];
+```
+* The first index of an array is zero
+* aList.length / aList["length"]: access the length property of the value in aList
+### Properties
+> Almost all JavaScript values have properties. The exceptions are `null` and `undefined`.
+```
+null.length;
+// → TypeError: null has no properties
+```
+> The two main ways to access properties in JavaScript are with a dot and with square brackets. Both `value.x` and `value[x]` access a property on value—but not necessarily the same property. The difference is in how x is interpreted. 
+
+* the word after the dot is the literal name of the property. `array.length`
+* the expression between the brackets is evaluated to get the property name. `array.length`
+### Methods
+```
+let doh = "Doh";
+console.log(typeof doh.toUpperCase);
+// → function
+console.log(doh.toUpperCase());
+// → DOH
+```
+```
+let sequence = [1, 2, 3];
+sequence.push(4);
+console.log(sequence);
+// → [1, 2, 3, 4]
+console.log(sequence.pop());
+// → 4
+console.log(sequence);
+// → [1, 2, 3]
+```
+> A `stack`, in programming, is a data structure that allows you to push values into it and pop them out again in the opposite order so that the thing that was added last is removed first. (`LIFO`) These are common in programming—you might remember the function call `stack` from the previous chapter, which is an instance of the same idea.
+### Objects
+> Values of the type object are arbitrary collections of properties. One way to create an object is by using braces as an expression.
+```
+let day1 = {
+  squirrel: false,
+  events: ["work", "touched tree", "pizza", "running"]
+};
+console.log(day1.squirrel);
+// → false
+console.log(day1.wolf);
+// → undefined
+day1.wolf = false;
+console.log(day1.wolf);
+// → false
+```
+> Reading a property that doesn’t exist will give you the value `undefined`.
+
+> When an object is written over multiple lines, indenting it like in the example helps with readability.
+
+> This means that braces have two meanings in JavaScript. At the start of a statement, they start a block of statements. In any other position, they describe an object. Fortunately, it is rarely useful to start a statement with an object in braces, so the ambiguity between these two is not much of a problem.
+
+* assign a value to a property expression: `=`
+* unary operator, when applied to an object property, remove the named property from the object: `delete`
+* applied to a string and an object, whether that object has a property with that name: `in`
+* what properties an object has: `Object.keys`
+```
+console.log(Object.keys({x: 0, y: 0, z: 2}));
+// → ["x", "y", "z"]
+```
+> The difference between setting a property to undefined and actually deleting it is that, in the first case, the object still has the property (it just doesn’t have a very interesting value), whereas in the second case the property is no longer present and in will return false.
+```
+let objectA = {a: 1, b: 2};
+Object.assign(objectA, {b: 3, c: 4});
+console.log(objectA);
+// → {a: 1, b: 3, c: 4}
+```
+> There’s an `Object.assign` function that copies all properties from one object into another.
+### Mutability
+```
+let object1 = {value: 10};
+let object2 = object1;
+let object3 = {value: 10};
+console.log(object1 == object2);
+// → true
+console.log(object1 == object3);
+// → false
+object1.value = 15;
+console.log(object2.value);
+// → 15
+console.log(object3.value);
+// → 10
+```
+> The object1 and object2 bindings grasp the same object, which is why changing object1 also changes the value of object2. They are said to have the same `identity`. The binding object3 points to a different object, which initially contains the same properties as object1 but lives a separate life.
+
+> Bindings can also be changeable or constant, but this is separate from the way their values behave. you can use a let binding to keep track of a changing number by changing the value the binding points at. Similarly, though a const binding to an object can itself not be changed and will continue to point at the same object, the contents of that object might change.
+```
+const score = {visitors: 0, home: 0};
+// This is okay
+score.visitors = 1;
+// This isn't allowed: TypeError: invalid assignment to const 'score'
+score = {visitors: 1, home: 1};
+```
+> When you compare objects with JavaScript’s == operator, it compares by `identity`: it will produce true only if both objects are precisely the same value. (Comparing different objects will return false)
+
+> Arrays have an `includes` method that checks whether a given value exists in the array. The function uses that to determine whether the event name it is interested in is part of the event list for a given day.
+### Array loops
+> There is a simpler way to write such loops in modern JavaScript.
+```
+for (let entry of JOURNAL) {
+  console.log(`${entry.events.length} events.`);
+}
+```
+> When a `for` loop looks like this, with the word `of` after a variable definition, it will loop over the elements of the value given after of. This works not only for arrays but also for strings and some other data structures. We’ll discuss how it works in Chapter 6.
+### Further arrayology
+> We saw `push` and `pop`, which add and remove elements at the end of an array, earlier in this chapter. The corresponding methods for adding and removing things at the start of an array are called `unshift` and `shift`. 
+
+> To search for a specific value, arrays provide an `indexOf` method. Both indexOf and lastIndexOf take an optional second argument that indicates where to start searching.
+```
+console.log([1, 2, 3, 2, 1].indexOf(2));
+// → 1
+console.log([1, 2, 3, 2, 1].lastIndexOf(2));
+// → 3
+```
+> Another fundamental array method is `slice`, which takes start and end indices and returns an array that has only the elements between them. The start index is inclusive, the end index exclusive.
+```
+console.log([0, 1, 2, 3, 4].slice(2, 4));
+// → [2, 3]
+console.log([0, 1, 2, 3, 4].slice(2));
+// → [2, 3, 4]
+```
+> The `concat` method can be used to glue arrays together to create a new array, similar to what the + operator does for strings.
+### Strings and their properties
+* `length` and `toUpperCase` from string values
+* immutable 
+* do have built-in properties: `slice` and `indexOf`
+* `trim` method removes whitespace
+* `padStart`
+* `split` and `join`
+* a string can be repeated with the `repeat` method, which creates a new string
+```
+console.log("one two three".indexOf("ee"));
+// → 11
+console.log("  okay \n ".trim());
+// → okay
+console.log(String(6).padStart(3, "0"));
+// → 006
+let sentence = "Secretarybirds specialize in stomping";
+let words = sentence.split(" ");
+console.log(words);
+// → ["Secretarybirds", "specialize", "in", "stomping"]
+console.log(words.join(". "));
+// → Secretarybirds. specialize. in. stomping
+console.log("LA".repeat(3));
+// → LALALA
+```
+### Rest parameters
+> It can be useful for a function to accept any number of arguments. To write such a function, you put three dots `...` before the function’s last parameter. 
+```
+function max(...numbers) {
+  let result = -Infinity;
+  for (let number of numbers) {
+    if (number > result) result = number;
+  }
+  return result;
+}
+console.log(max(4, 1, 9, -2));
+// → 9
+```
+> can use a similar three-dot notation to call a function with an array of arguments.
+```
+let numbers = [5, 1, 7];
+console.log(max(...numbers));
+// → 7
+let words = ["never", "fully"];
+console.log(["will", ...words, "understand"]);
+// → ["will", "never", "fully", "understand"]
+```
+### The Math object
+> The Math object is used as a container to group a bunch of related functionality. There is only one Math object, and it is almost never useful as a value. Rather, it provides a `namespace` so that all these functions and values do not have to be global bindings.
+
+> Having too many global bindings “pollutes” the namespace. The more names have been taken, the more likely you are to accidentally overwrite the value of some existing binding.
+
+> Many languages will stop you, or at least warn you, when you are defining a binding with a name that is already taken. JavaScript does this for bindings you declared with `let` or `const` but—perversely—not for standard bindings nor for bindings declared with `var` or `function`.
+
+* Math.random() -> [0,1)
+* Math.floor (rounds down to the nearest whole number)
+```
+console.log(Math.floor(Math.random() * 10));
+// → 2
+```
+### JSON
+> What we can do is serialize the data. That means it is converted into a flat description. `JavaScript Object Notation`
+
+> JSON looks similar to JavaScript’s way of writing arrays and objects, with a few restrictions. All property names have to be `surrounded by double quotes`, and only simple data expressions are allowed—no function calls, bindings, or anything that involves actual computation. Comments are not allowed in JSON.
+
+> JavaScript gives us the functions `JSON.stringify` and `JSON.parse` to convert data to and from this format. The first takes a JavaScript value and returns a JSON-encoded string. The second takes such a string and converts it to the value it encodes.
+### Summary
+> `Objects` and `arrays` (which are a specific kind of object) provide ways to group several values into a single value.
+
+> Most values in JavaScript have properties, the exceptions being `null` and `undefined`. Properties are accessed using `value.prop` or `value["prop"]`. Objects tend to use names for their properties and store more or less a fixed set of them. `Arrays`, on the other hand, usually contain varying amounts of conceptually identical values and use numbers (starting from 0) as the names of their properties.
+
+> There are some named properties in arrays, such as `length` and a number of methods. Methods are functions that live in properties and (usually) act on the value they are a property of.
+
+> You can iterate over arrays using a special kind of for loop—for (`let element of array`).
+### [4 exercices](https://eloquentjavascript.net/code/#4)
+## 5.Higher-Order Functions
+> expressing simpler concepts than the program as a whole is easier to get right.
+### Abstraction
+> `Abstractions` hide details and give us the ability to talk about problems at a higher (or more abstract) level.
+### Abstracting repetition
+> Often, it is easier to create a function value on the spot instead.
+```
+let labels = [];
+repeat(5, i => {
+  labels.push(`Unit ${i + 1}`);
+});
+console.log(labels);
+// → ["Unit 1", "Unit 2", "Unit 3", "Unit 4", "Unit 5"]
+```
+### Higher-order functions
+> Functions that operate on other functions, either by taking them as arguments or by returning them, are called `higher-order functions`.
+
+> Higher-order functions allow us to abstract over actions, not just values. They come in several forms. For example, we can have functions that create new functions.
+```
+function greaterThan(n) {
+  return m => m > n;
+}
+let greaterThan10 = greaterThan(10);
+console.log(greaterThan10(11));
+// → true
+```
+> There is a built-in array method, `forEach`, that provides something like a for/of loop as a higher-order function.
+```
+["A", "B"].forEach(l => console.log(l));
+// → A
+// → B
+```
+### Script data set
+
 
