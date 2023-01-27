@@ -1,5 +1,6 @@
 
 - est-ce que le waitgroup est nécessaire ? puisque recevoir dans le channel c'est bloquant
+=> non inutile si channels
 
 - faut il choisir l'un des deux modes de découpage (lignes ou colonnes) qui maximise le nombre 
     de goroutines qui travaillent en parallèle ?
