@@ -26,8 +26,6 @@ func Input() {
 	fmt.Println("B =")
 	fmt.Println(string(contentB), "\n")
 
-	// todo: valid 2 matrix
-
 	// mA := len(contentA) /* len(contentA[0])*/
 	// mB := len(contentB)  /* len(contentB[0])*/
 	// fmt.Println(mA, mB)
@@ -42,8 +40,12 @@ func Input() {
 	B_col_len := len(B_lines[0]) / 2
 	// fmt.Println(A_lines)
 	// fmt.Println(B_lines, "\n")
-	fmt.Println("matric A de taille:", A_line_len, A_col_len)
-	fmt.Println("matric B de taille:", B_line_len, B_col_len, "\n")
+	fmt.Println("matric A de taille: (", A_line_len, A_col_len, ")")
+	fmt.Println("matric B de taille: (", B_line_len, B_col_len, ")\n")
+
+	if A_line_len != B_col_len {
+		panic("Pas possible de multiplier: Longueur de ligne de A != Longueur de colonne de B !")
+	}
 
 	var matriceA [][]float64
 	var matriceB [][]float64
