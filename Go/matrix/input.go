@@ -45,6 +45,7 @@ func Input() {
 	fmt.Println("matric A de taille:", A_line_len, A_col_len)
 	fmt.Println("matric B de taille:", B_line_len, B_col_len, "\n")
 
+<<<<<<< HEAD
 	var matriceA [][]float64
 	var matriceB [][]float64
 	//matrice A
@@ -80,4 +81,3 @@ func Input() {
 
 func main() {
 	Input()
-}

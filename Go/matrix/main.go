@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"sync"
 	"time"
 )
 
@@ -28,7 +27,6 @@ func multiplicationTotale(matriceA [][]float64, matriceB [][]float64) [][]float6
 	for y:= 0; y<tailleAy;y++ {
 		ligne := make([]float64, tailleBx)
 		for x := 0; x<tailleBx; x++ {
-			//ligne[x] = float64(3.14)
 			for i := 0; i<tailleCommune; i++ {
 				ligne[x] += matriceA[y][i]*matriceB[i][x]
 			}
@@ -41,7 +39,7 @@ func multiplicationTotale(matriceA [][]float64, matriceB [][]float64) [][]float6
 }
 
 //calcule 1 ligne de la matrice produit
-func workerMultiplicationPartielle(wg *sync.WaitGroup, jobs chan *portionTodo, result chan *portionFinished){
+func workerMultiplicationPartielle(jobs chan *portionTodo, result chan *portionFinished){
 	//récupération des infos du channel
 	job :=<- jobs
 	tailleRecurrente := len(*job.ligneYmatriceA)
@@ -60,29 +58,26 @@ func workerMultiplicationPartielle(wg *sync.WaitGroup, jobs chan *portionTodo, r
 	rendu := portionFinished{positionY: job.positionY}
 	rendu.ligneFinale = &ligne
 	result <- &rendu
-	wg.Done()
 }
 
 func managerMultiplicationPartielle(matriceA [][]float64, matriceB [][]float64) [][]float64{
 	nombreWorkers := len(matriceA)
 	matriceC := make([][]float64, nombreWorkers)
 
-	var wg sync.WaitGroup
 	jobsChannel := make(chan *portionTodo, nombreWorkers)
 	resultChannel := make(chan *portionFinished, nombreWorkers)
 
 	for i:=0; i<nombreWorkers; i++ {
-		wg.Add(1)
-		go workerMultiplicationPartielle(&wg,jobsChannel,resultChannel)
+		go workerMultiplicationPartielle(jobsChannel,resultChannel)
 	}
 
-	for i:=0; i<nombreWorkers; i++ {
-		var portion portionTodo
-		portion = portionTodo{positionY: i, matriceB: &matriceB, ligneYmatriceA: &(matriceA[i])}
-		jobsChannel <- &portion
-	}
-
-	wg.Wait()
+	go func(){
+		for i:=0; i<nombreWorkers; i++ {
+			var portion portionTodo
+			portion = portionTodo{positionY: i, matriceB: &matriceB, ligneYmatriceA: &(matriceA[i])}
+			jobsChannel <- &portion
+		}
+	}()
 
 	for i:=0; i<nombreWorkers; i++ {
 		resultat :=<- resultChannel
