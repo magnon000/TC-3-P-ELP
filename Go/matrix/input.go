@@ -50,11 +50,14 @@ func input() ([][]float64, [][]float64){
 	var matriceA [][]float64
 	var matriceB [][]float64
 	//matrice A
-	for y := 0; y < A_line_len-1; y++ {
-		temp_line := strings.Split(A_lines[y], ",") // list of string
+	for y := 0; y < A_line_len; y++ {
+		temp_line := A_lines[y]
+		temp_line = strings.Replace(temp_line, "\n", "", -1)  // in linux a line ends with "\n"
+		temp_line = strings.Replace(temp_line, "\r", "", -1)  // in win10 a line ends with "\r\n"
+		a_line := strings.Split(temp_line, ",") // list of string
 		var out_line []float64
-		for index := 0; index < A_col_len-1; index++ {
-			num, erreur := strconv.ParseFloat(temp_line[index], 64)
+		for index := 0; index < A_col_len; index++ {
+			num, erreur := strconv.ParseFloat(a_line[index], 64)  
 			if erreur != nil {
 				panic(erreur)
 			}
@@ -63,12 +66,15 @@ func input() ([][]float64, [][]float64){
 		matriceA = append(matriceA, out_line)
 	}
 	fmt.Println("matriceA =", matriceA)
-	// //matrice B
-	for y := 0; y < B_line_len-1; y++ {
-		temp_line := strings.Split(B_lines[y], ",") // list of string
+	//matrice B
+	for y := 0; y < B_line_len; y++ {
+		temp_line := B_lines[y]
+		temp_line = strings.Replace(temp_line, "\n", "", -1)  // in linux a line ends with "\n"
+		temp_line = strings.Replace(temp_line, "\r", "", -1)  // in win10 a line ends with "\r\n"
+		a_line := strings.Split(temp_line, ",") // list of string
 		var out_line []float64
-		for index := 0; index < B_col_len-1; index++ {
-			num, erreur := strconv.ParseFloat(temp_line[index], 64)
+		for index := 0; index < B_col_len; index++ {
+			num, erreur := strconv.ParseFloat(a_line[index], 64)
 			if erreur != nil {
 				panic(erreur)
 			}
@@ -81,4 +87,3 @@ func input() ([][]float64, [][]float64){
 	return matriceA, matriceB
 
 }
-
