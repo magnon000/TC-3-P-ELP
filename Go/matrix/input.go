@@ -12,7 +12,7 @@ const (
 	matriceB = "b.txt"
 )
 
-func Input() {
+func input() ([][]float64, [][]float64){
 	contentA, err := os.ReadFile(matriceA)
 	if err != nil {
 		panic(err)
@@ -77,9 +77,8 @@ func Input() {
 		matriceB = append(matriceB, out_line)
 	}
 	fmt.Println("matriceB =", matriceB)
+	
+	return matriceA, matriceB
 
 }
 
-func main() {
-	Input()
-}

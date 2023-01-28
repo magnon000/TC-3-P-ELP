@@ -1,0 +1,77 @@
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+
+
+//phase 0
+func multiplicationTotale(matriceA [][]float64, matriceB [][]float64) [][]float64{
+	//récupérer tailles (vérifié dans input : tailleAx==tailleBy)
+	tailleAy := len(matriceA)
+	tailleBx := len(matriceB[0])
+	tailleCommune := len(matriceB)
+
+	//créer et remplir matrice résultat C
+	matriceC := make([][]float64, tailleAy)
+	for y:= 0; y<tailleAy;y++ {
+		ligne := make([]float64, tailleBx)
+		for x := 0; x<tailleBx; x++ {
+			for i := 0; i<tailleCommune; i++ {
+				ligne[x] += matriceA[y][i]*matriceB[i][x]
+			}
+		}
+		matriceC[y] = ligne
+	}
+
+	return matriceC
+
+}
+
+func main(){
+	fmt.Println("Test")
+
+	tailleAx:=500
+	tailleAy:=500
+	tailleBx:=500
+	tailleBy:=500
+
+	matriceA := make([][]float64, tailleAy)
+	matriceB := make([][]float64, tailleBy)
+
+	//matrice A
+	for y:= 0; y<tailleAy;y++ {
+		ligne := make([]float64, tailleAx)
+		for x := 0; x<tailleAx; x++ {
+			if x==y {
+				ligne[x] = 1
+			} else {
+				ligne[x] = 0
+			}
+		}
+		matriceA[y] = ligne
+	}
+
+	//matrice B
+	for y:= 0; y<tailleAy;y++ {
+		ligne := make([]float64, tailleBx)
+		for x := 0; x<tailleBx; x++ {
+			if x==y {
+				ligne[x] = 1
+			} else {
+				ligne[x] = 0
+			}
+		}
+		matriceB[y] = ligne
+	}
+
+	//test 1 thread
+	start1 := time.Now()
+	fmt.Println(multiplicationTotale(matriceA, matriceB))
+	end1 := time.Now()
+	fmt.Println("Durée du calcul 1 thread :",end1.Sub(start1))
+
+
+}
