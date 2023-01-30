@@ -19,6 +19,9 @@ const (
 	input_method = "file" //options: "file" "console"
 	matriceA_raw = "a.txt"
 	matriceB_raw = "b.txt"
+	start_phrase = "\nsend_start\n"
+	next_phrase  = "\nsend_next\n"
+	end_phrase   = "\nsend_end\n"
 )
 
 func trans(connection net.Conn, data []byte) {
@@ -57,11 +60,12 @@ func main() {
 		mA, mB := Input(matriceA_raw, matriceB_raw) //todo: a list for multiple matrix
 		// var data_list [2]uint8{mA, mB}
 		// for { todo: use for loop here
+		trans(conn, []byte(start_phrase))
 		trans(conn, mA)
-		words := "1ok"
-		trans(conn, []byte(words))
+		trans(conn, []byte(next_phrase))
+		// trans(conn, []byte(start_phrase))
 		trans(conn, mB)
-		trans(conn, []byte(words))
-
+		trans(conn, []byte(end_phrase))
+		defer conn.Close()
 	}
 }

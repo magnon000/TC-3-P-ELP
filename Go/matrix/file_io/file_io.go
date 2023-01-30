@@ -24,7 +24,7 @@ func Input(matrice_a string, matrice_b string) ([]byte, []byte) {
 		panic(err)
 	}
 	fmt.Println("B =")
-	fmt.Println(string(contentB), "\n")
+	fmt.Println(string(contentB))
 	return contentA, contentB
 }
 
@@ -44,7 +44,7 @@ func Output(content_a []byte, content_b []byte) ([][]float64, [][]float64) {
 	// fmt.Println(A_lines)
 	// fmt.Println(B_lines, "\n")
 	fmt.Println("matric A de taille: (", A_line_len, A_col_len, ")")
-	fmt.Println("matric B de taille: (", B_line_len, B_col_len, ")\n")
+	fmt.Println("matric B de taille: (", B_line_len, B_col_len, ")")
 
 	if A_line_len != B_col_len {
 		panic("Pas possible de multiplier: Longueur de ligne de A != Longueur de colonne de B !")

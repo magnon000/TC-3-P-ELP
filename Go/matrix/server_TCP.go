@@ -19,15 +19,14 @@ func process(conn net.Conn) {
 	// close connection
 	defer conn.Close()
 	for {
-		var buf [128]byte
+		var buf [10240]byte
 		n, err := conn.Read(buf[:])
 		if err != nil {
-			fmt.Printf("Connection reading failed:\n	%v\n", err)
+			fmt.Printf("Connection reading failed%v:\n	%v\n", conn, err)
 			break
 		}
-		fmt.Printf("Content from client:%v\n", string(buf[:n]))
+		fmt.Printf("Content from client%v:\n%v\n", conn, string(buf[:n]))
 	}
-
 }
 
 func main() {
@@ -44,7 +43,7 @@ func main() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Printf("Connection to client failed:\n	%v\n", err) // print the value in a default format
+			fmt.Printf("Connection to client failed%v:\n	%v\n", conn, err) // print the value in a default format
 			continue
 		}
 		// 3. open connection, handle request
