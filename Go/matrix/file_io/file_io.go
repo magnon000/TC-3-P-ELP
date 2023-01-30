@@ -1,4 +1,4 @@
-package main
+package file_io
 
 import (
 	"fmt"
@@ -7,31 +7,34 @@ import (
 	"strings"
 )
 
-const (
-	matriceA = "a.txt"
-	matriceB = "b.txt"
-)
+// const (
+// 	matriceA = "a.txt"
+// 	matriceB = "b.txt"
+// )
 
-func input() ([][]float64, [][]float64){
-	contentA, err := os.ReadFile(matriceA)
+func Input(matrice_a string, matrice_b string) ([]byte, []byte) {
+	contentA, err := os.ReadFile(matrice_a)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("A =")
 	fmt.Println(string(contentA))
-	contentB, err := os.ReadFile(matriceB)
+	contentB, err := os.ReadFile(matrice_b)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("B =")
 	fmt.Println(string(contentB), "\n")
+	return contentA, contentB
+}
 
+func Output(content_a []byte, content_b []byte) ([][]float64, [][]float64) {
 	// mA := len(contentA) /* len(contentA[0])*/
 	// mB := len(contentB)  /* len(contentB[0])*/
 	// fmt.Println(mA, mB)
 
-	A_lines := strings.SplitAfter(string(contentA), "\n") // do not use string.Split here, \n causes assignment error
-	B_lines := strings.SplitAfter(string(contentB), "\n") // list contains all lines of matrix
+	A_lines := strings.SplitAfter(string(content_a), "\n") // do not use string.Split here, \n causes assignment error
+	B_lines := strings.SplitAfter(string(content_b), "\n") // list contains all lines of matrix
 	// fmt.Println(A_lines[0])
 	// fmt.Printf("type: %T\n", A_lines[0]) // one line in matrix list is of type string
 	A_line_len := len(A_lines)       // ligne de matrice A
@@ -52,12 +55,12 @@ func input() ([][]float64, [][]float64){
 	//matrice A
 	for y := 0; y < A_line_len; y++ {
 		temp_line := A_lines[y]
-		temp_line = strings.Replace(temp_line, "\n", "", -1)  // in linux a line ends with "\n"
-		temp_line = strings.Replace(temp_line, "\r", "", -1)  // in win10 a line ends with "\r\n"
-		a_line := strings.Split(temp_line, ",") // list of string
+		temp_line = strings.Replace(temp_line, "\n", "", -1) // in linux a line ends with "\n"
+		temp_line = strings.Replace(temp_line, "\r", "", -1) // in win10 a line ends with "\r\n"
+		a_line := strings.Split(temp_line, ",")              // list of string
 		var out_line []float64
 		for index := 0; index < A_col_len; index++ {
-			num, erreur := strconv.ParseFloat(a_line[index], 64)  
+			num, erreur := strconv.ParseFloat(a_line[index], 64)
 			if erreur != nil {
 				panic(erreur)
 			}
@@ -69,9 +72,9 @@ func input() ([][]float64, [][]float64){
 	//matrice B
 	for y := 0; y < B_line_len; y++ {
 		temp_line := B_lines[y]
-		temp_line = strings.Replace(temp_line, "\n", "", -1)  // in linux a line ends with "\n"
-		temp_line = strings.Replace(temp_line, "\r", "", -1)  // in win10 a line ends with "\r\n"
-		a_line := strings.Split(temp_line, ",") // list of string
+		temp_line = strings.Replace(temp_line, "\n", "", -1) // in linux a line ends with "\n"
+		temp_line = strings.Replace(temp_line, "\r", "", -1) // in win10 a line ends with "\r\n"
+		a_line := strings.Split(temp_line, ",")              // list of string
 		var out_line []float64
 		for index := 0; index < B_col_len; index++ {
 			num, erreur := strconv.ParseFloat(a_line[index], 64)
@@ -83,7 +86,7 @@ func input() ([][]float64, [][]float64){
 		matriceB = append(matriceB, out_line)
 	}
 	fmt.Println("matriceB =", matriceB)
-	
+
 	return matriceA, matriceB
 
 }
