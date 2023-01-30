@@ -28,13 +28,13 @@ func Input(matrice_a string, matrice_b string) ([]byte, []byte) {
 	return contentA, contentB
 }
 
-func Output(content_a []byte, content_b []byte) ([][]float64, [][]float64) {
-	// mA := len(contentA) /* len(contentA[0])*/
-	// mB := len(contentB)  /* len(contentB[0])*/
+func Output(content_a string, content_b string) ([][]float64, [][]float64) {
+	// mA := len(content_a) /* len(contentA[0])*/
+	// mB := len(content_b) /* len(contentB[0])*/
 	// fmt.Println(mA, mB)
 
-	A_lines := strings.SplitAfter(string(content_a), "\n") // do not use string.Split here, \n causes assignment error
-	B_lines := strings.SplitAfter(string(content_b), "\n") // list contains all lines of matrix
+	A_lines := strings.SplitAfter(content_a, "\n") // do not use string.Split here, \n causes assignment error
+	B_lines := strings.SplitAfter(content_b, "\n") // list contains all lines of matrix
 	// fmt.Println(A_lines[0])
 	// fmt.Printf("type: %T\n", A_lines[0]) // one line in matrix list is of type string
 	A_line_len := len(A_lines)       // ligne de matrice A
@@ -43,7 +43,7 @@ func Output(content_a []byte, content_b []byte) ([][]float64, [][]float64) {
 	B_col_len := len(B_lines[0]) / 2
 	// fmt.Println(A_lines)
 	// fmt.Println(B_lines, "\n")
-	fmt.Println("matric A de taille: (", A_line_len, A_col_len, ")")
+	fmt.Println("\nmatric A de taille: (", A_line_len, A_col_len, ")")
 	fmt.Println("matric B de taille: (", B_line_len, B_col_len, ")")
 
 	if A_line_len != B_col_len {
@@ -68,7 +68,7 @@ func Output(content_a []byte, content_b []byte) ([][]float64, [][]float64) {
 		}
 		matriceA = append(matriceA, out_line)
 	}
-	fmt.Println("matriceA =", matriceA)
+	// fmt.Println("matriceA =", matriceA)
 	//matrice B
 	for y := 0; y < B_line_len; y++ {
 		temp_line := B_lines[y]
@@ -85,7 +85,7 @@ func Output(content_a []byte, content_b []byte) ([][]float64, [][]float64) {
 		}
 		matriceB = append(matriceB, out_line)
 	}
-	fmt.Println("matriceB =", matriceB)
+	// fmt.Println("matriceB =", matriceB)
 
 	return matriceA, matriceB
 

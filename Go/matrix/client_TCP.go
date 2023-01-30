@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// reuse func in input.go, read local text files and send bytes to server
+// reuse func in file_io.go, read local text files and send bytes to server
 // then receive bytes from server, show them and store in txt file
 
 const (
@@ -20,7 +20,6 @@ const (
 	matriceA_raw = "a.txt"
 	matriceB_raw = "b.txt"
 	start_phrase = "\nsend_start\n"
-	next_phrase  = "\nsend_next\n"
 	end_phrase   = "\nsend_end\n"
 )
 
@@ -33,7 +32,7 @@ func trans(connection net.Conn, data []byte) {
 }
 
 func main() {
-	//1. connect to server
+	//1. Dial server
 	conn, err := net.Dial(protocol, ip_addr+":"+port)
 	if err != nil {
 		fmt.Printf("Connection to server failed:\n		%v\n", err)
@@ -62,10 +61,25 @@ func main() {
 		// for { todo: use for loop here
 		trans(conn, []byte(start_phrase))
 		trans(conn, mA)
-		trans(conn, []byte(next_phrase))
-		// trans(conn, []byte(start_phrase))
+		// trans(conn, []byte(next_phrase))
+		trans(conn, []byte(end_phrase))
+		trans(conn, []byte(start_phrase))
 		trans(conn, mB)
 		trans(conn, []byte(end_phrase))
+
+		// var full_buf []byte
+		// for {
+		// 	var buf [buffer_size]byte
+		// 	n, err := conn.Read(buf[:])
+		// 	if err != nil {
+		// 		fmt.Printf("Connection reading failed %v:\n	%v\n", conn, err)
+		// 		break
+		// 	}
+		// 	// fmt.Printf("Content from client %v:\n%v\n", conn, string(buf[:n]))
+		// 	full_buf = BytesCombine(full_buf, buf[:n])
+		// }
+		// fmt.Printf("Full content from %v in buffer:\n%v\n", conn, string(full_buf))
+
 		defer conn.Close()
 	}
 }
