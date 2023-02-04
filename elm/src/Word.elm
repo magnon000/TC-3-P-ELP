@@ -5,9 +5,10 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode exposing (Decoder, map4, field, int, string)
+import Json.Decode exposing (Decoder, field)
 import String exposing (words)
 import Random
+import Debug exposing (..)
 
 
 import Browser
@@ -33,10 +34,27 @@ main =
 
 
 type Model
-  = Failure
+  = FailureWords String
+  | FailureRand
+  | FailureRecuperationDuMotChoisi
+  | FailureAPI String
   | Loading
   | AllWords String
   | OneWord String
+  | WordWithData String WordData
+
+type alias WordData =
+  { senses : List Sens
+  }
+
+type alias Sens =
+  { usages : List Usage
+  }
+
+type alias Usage =
+  { wordType : String
+  , definitions : List String
+  }
 
 
 init : () -> (Model, Cmd Msg)
@@ -56,6 +74,7 @@ init _ =
 type Msg
   = GotText (Result Http.Error String)
   | GotRand Int
+  | GotEverything (Result Http.Error WordData)
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -66,14 +85,48 @@ update msg model =
         Ok fullText ->
           (AllWords fullText, Random.generate GotRand (Random.int 1 999))
 
-        Err _ ->
-          (Failure, Cmd.none)
+        Err error ->
+          case error of
+            Http.BadUrl _ ->
+              (FailureWords "Bad Url", Cmd.none)
+            Http.Timeout ->
+              (FailureWords "Timeout", Cmd.none)
+            Http.NetworkError ->
+              (FailureWords "Network Error", Cmd.none)
+            Http.BadStatus _ ->
+              (FailureWords "Bad Status", Cmd.none)
+            Http.BadBody _ ->
+              (FailureWords "Bad Body", Cmd.none)
     GotRand id ->
         case model of
             AllWords fullText ->
-                (OneWord (getWordAtIndex id (words fullText)), Cmd.none)
+                (OneWord (getWordAtIndex id (words fullText)), getWordJson (getWordAtIndex id (words fullText)))
             _ ->
-                (Failure, Cmd.none)
+                (FailureRand, Cmd.none)
+    GotEverything result ->
+      case model of
+            OneWord theWord ->
+                case result of
+                  Ok data ->
+                    (WordWithData theWord data, Cmd.none)
+                  
+                  Err error ->
+                    case error of
+                      Http.BadUrl _ ->
+                        (FailureAPI "Bad Url", Cmd.none)
+                      Http.Timeout ->
+                        (FailureAPI "Timeout", Cmd.none)
+                      Http.NetworkError ->
+                        (FailureAPI "Network Error", Cmd.none)
+                      Http.BadStatus _ ->
+                        (FailureAPI "Bad Status", Cmd.none)
+                      Http.BadBody problem ->
+                        (FailureAPI (String.append "Bad Body" problem), Cmd.none)
+
+            _ ->
+              (FailureRecuperationDuMotChoisi, Cmd.none)
+      
+    
 
             
 
@@ -85,8 +138,17 @@ update msg model =
 view : Model -> Html Msg
 view model =
   case model of
-    Failure ->
-      text "Liste de mots introuvable."
+    FailureWords reason ->
+      text (String.append "Erreur récupération des mots : " reason)
+    
+    FailureRand ->
+      text "Échec de la randomisation."
+    
+    FailureRecuperationDuMotChoisi ->
+      text "Echec récupération du mot qui avait été choisi aléatoirement"
+    
+    FailureAPI reason ->
+      text (String.append "Erreur récupération du json : " reason)
 
     Loading ->
       text "Loading..."
@@ -99,6 +161,11 @@ view model =
       [ style "top" "30px" --marche pas
       , style "left" "50px"] --marche pas
       [ text word ]
+    
+    WordWithData _ data ->
+      div [] [h1 [] [text "Hmmm try to guess the word hahahahah >:)"],
+      h1 [] [text (getFirstUsage (getFirstSense data.senses).usages).wordType]]
+
 
 
 
@@ -111,9 +178,39 @@ getWordAtIndex index liste = case liste of
 
 
 
+getFirstSense : List Sens -> Sens
+getFirstSense senses = case senses of
+    [] -> (Sens [])
+    (x::xs) -> x
+
+getFirstUsage : List Usage -> Usage
+getFirstUsage usages = case usages of
+    [] -> (Usage "" [])
+    (x::xs) -> x
 
 
+getWordJson : String -> Cmd Msg
+getWordJson word =
+  Http.get
+    { url = (String.append "https://api.dictionaryapi.dev/api/v2/entries/en/" word)
+    , expect = Http.expectJson GotEverything jsonDecoder
+    }
 
+
+jsonDecoder : Decoder WordData
+jsonDecoder =
+  Json.Decode.map WordData (Json.Decode.list senseDecoder)
+
+senseDecoder : Decoder Sens
+senseDecoder =
+  Json.Decode.map Sens
+    (field "meanings" (Json.Decode.list usageDecoder))
+
+usageDecoder : Decoder Usage
+usageDecoder =
+  Json.Decode.map2 Usage
+    (field "partOfSpeech" Json.Decode.string)
+    (field "definitions" (Json.Decode.list (field "definition" Json.Decode.string)))
 
 
 
@@ -140,5 +237,6 @@ getWordAtIndex index liste = case liste of
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
+
 
 
