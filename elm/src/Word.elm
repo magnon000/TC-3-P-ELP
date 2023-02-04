@@ -38,6 +38,7 @@ type Model
   | FailureRand
   | FailureRecuperationDuMotChoisi
   | FailureAPI String
+  | OtherFailure
   | Loading
   | AllWords String
   | OneWord String
@@ -125,7 +126,15 @@ update msg model =
 
             _ ->
               (FailureRecuperationDuMotChoisi, Cmd.none)
-      
+    
+    -- UserGuess guess ->
+    --   case model of ->
+    --     WordWithData theWord data ->
+    --       (GuessingPhase guess theWord data, Cmd.none)
+        
+    --     _ ->
+    --       (OtherFailure, Cmd.none)
+
     
 
             
@@ -139,7 +148,7 @@ view : Model -> Html Msg
 view model =
   case model of
     FailureWords reason ->
-      text (String.append "Erreur récupération des mots : " reason)
+      text (String.append "Erreur HTTP récupération des mots : " reason)
     
     FailureRand ->
       text "Échec de la randomisation."
@@ -148,7 +157,10 @@ view model =
       text "Echec récupération du mot qui avait été choisi aléatoirement"
     
     FailureAPI reason ->
-      text (String.append "Erreur récupération du json : " reason)
+      text (String.append "Erreur HTTP récupération du json : " reason)
+    
+    OtherFailure ->
+      text "General unspecific failure"
 
     Loading ->
       text "Loading..."
@@ -162,9 +174,15 @@ view model =
       , style "left" "50px"] --marche pas
       [ text word ]
     
-    WordWithData _ data ->
-      div [] [h1 [] [text "Hmmm try to guess the word hahahahah >:)"],
-      h1 [] [text (getFirstUsage (getFirstSense data.senses).usages).wordType]]
+    WordWithData word data ->
+      div [] [
+        h1 [] [text "Try to guess the word"]
+        ,hr [] []
+        ,hr [] []
+        ,wordDataToHtml data
+      ]
+    
+    --GuessingPhase guess word wordData ->
 
 
 
@@ -177,16 +195,6 @@ getWordAtIndex index liste = case liste of
         _ -> getWordAtIndex (index-1) xs --dit erreur sur vscode mais fonctionne...
 
 
-
-getFirstSense : List Sens -> Sens
-getFirstSense senses = case senses of
-    [] -> (Sens [])
-    (x::xs) -> x
-
-getFirstUsage : List Usage -> Usage
-getFirstUsage usages = case usages of
-    [] -> (Usage "" [])
-    (x::xs) -> x
 
 
 getWordJson : String -> Cmd Msg
@@ -217,9 +225,62 @@ usageDecoder =
 
 
 
+getFirstSense : List Sens -> Sens
+getFirstSense senses = case senses of
+    [] -> (Sens [])
+    (x::xs) -> x
+
+getFirstUsage : List Usage -> Usage
+getFirstUsage usages = case usages of
+    [] -> (Usage "" [])
+    (x::xs) -> x
 
 
 
+
+
+
+
+---TEST 
+
+
+-- wordDataToHtml : WordData -> Html msg
+-- wordDataToHtml wordData =
+--   ul [] (List.map sensToHtml wordData.senses)
+
+-- sensToHtml : Sens -> Html msg
+-- sensToHtml sens =
+--   li [] [ (text "meaning :") :: List.map usageToHtml sens.usages ]
+
+-- usageToHtml : Usage -> Html msg
+-- usageToHtml usage =
+--   ul []
+--     [ li [] [ text (String.append "word type : " usage.wordType) ]
+--     , ol [] [(List.map definitionToHtml usage.definitions)]
+--     ]
+
+-- definitionToHtml : String -> Html msg
+-- definitionToHtml definition =
+--   li [] [ text definition ]
+
+wordDataToHtml : WordData -> Html msg
+wordDataToHtml wordData =
+  ul [] (List.map sensToHtml wordData.senses)
+
+sensToHtml : Sens -> Html msg
+sensToHtml sens =
+  li [style "padding-top" "10px"] ((h3 [] [text "Possible meaning :"]) :: List.map usageToHtml sens.usages)
+
+usageToHtml : Usage -> Html msg
+usageToHtml usage =
+  ul [] [
+    li [] [ h4 [] [(text (String.append "Word type : " usage.wordType))]],
+    ol [] (List.map definitionToHtml usage.definitions)
+  ]
+
+definitionToHtml : String -> Html msg
+definitionToHtml definition =
+  li [style "padding-top" "2px"] [ text definition ]
 
 
 
