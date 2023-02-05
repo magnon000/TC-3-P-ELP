@@ -1,13 +1,14 @@
 const readline = require('readline');
 const program = require('commander');  // process.argv[2] if we don't use commander Lib
 const {exec} = require('child_process');
+const os = require('os');
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-let versionTriggered = false;
+// let versionTriggered = false;
 // let hmCmdFlag = false;
 
 program
@@ -37,27 +38,92 @@ program
 
 program
     .command('roll <arg1>')
-    .description('lancer les dés de Dn (exemple. D20: 1-20, CMD: roll 20')
+    .description('------lancer les dés de Dn (exemple. D20: 1-20, CMD: roll 20')
     .action((arg1) => {
+        console.log("Lancer un dé:")
         const randomNumber = Math.floor(Math.random() * arg1) + 1;
         if (randomNumber === 1) {
             console.log("Total failure!");
-        } else if (randomNumber == arg1){  // ignore warning
+        } else if (randomNumber == arg1) {  // ignore warning
             console.log("Huge success!");
         } else {
             console.log(randomNumber);
         }
     });
 
-// program.on('--help', () => {
-//     console.log('\nCommands possibles:');
-//     program.commands.forEach((cmd) => {
-//         console.log(`    ${cmd._name} - ${cmd._description}`);
-//     });
-// });
+program
+    .command('lp')
+    .description('------lister tous processus')
+    .action(() => {
+        if (os.platform() === 'linux') {
+            exec('ps -A', (err, stdout, stderr) => {
+                if (err) {
+                    console.error(`\nErreur: ${err}`);
+                    prompt();
+                    return;
+                }
+                let processes = stdout.split('\n');
+                processes.shift();  // remove header row
+                processes = processes.map((p, index) => `${index + 1}. ${p}`);
+                console.log(processes.join('\n'));
+                prompt();
+            });
+        }
+        if (os.platform() === 'win32') {
+            exec('tasklist', (err, stdout, stderr) => {
+                if (err) {
+                    console.error(`\nErreur: ${err}`);
+                    prompt();
+                    return;
+                }
+                let processes = stdout.split('\n');
+                processes.shift();  // remove header row
+                processes = processes.map((p, index) => `${index + 1}. ${p}`);
+                console.log(processes.join('\n'));
+                prompt();
+            });
+        }
+    });
+
+program
+    .command("bing [options] <processId>")
+    .description("------tuer, mettre en pause ou reprendre un processus")
+    .option("-k, --kill", "tuer un processus")
+    .option("-p, --pause", "mettre en pause un processus")
+    .option("-c, --continue", "reprendre un processus")
+    .action((options, processId) => {
+        const processMap = new Map();
+        if (!processId) {
+            console.error("Erreur: 'processId' manquant");
+            return;
+        }
+        const childProcess = processMap.get(processId);
+        if (!childProcess) {
+            console.log(processId)
+            console.error(`Erreur: Processus non trouvé: ${processId}`);
+            return;
+        }
+        if (options.kill) {
+            console.log(`Tuer: ${processId}`);
+            childProcess.kill();
+            processMap.delete(processId);
+            console.log(`Tué: ${processId}`);
+        } else if (options.pause) {
+            console.log(`Mettre en pause: ${processId}`);
+            childProcess.stdin.pause();
+            console.log(`Mis en pause: ${processId}`);
+        } else if (options.continue) {
+            console.log(`Reprendre: ${processId}`);
+            childProcess.stdin.resume();
+            console.log(`Repris: ${processId}`);
+        } else {
+            console.error("Erreur: action non valide");
+        }
+    });
+
 
 program.on('command:*', () => {
-    console.error('HOMEMADE command inconnue: %s\n      taper "help" pour voir la liste de toutes les commands.', program.args.join(' '));
+    console.error('HOMEMADE commande inconnue: %s\n      taper "help" pour voir la liste de toutes les commandes.', program.args.join(' '));
     prompt();
 });
 
@@ -65,6 +131,11 @@ program.unknownOption = (flag) => {
     console.error(`Unknown option: ${flag}`);
     prompt();
 };
+
+rl.on("SIGINT", function () {
+    console.log("Exit on CTRL+C...");
+    process.exit();
+});
 
 // program.on('version', () => {
 //     versionTriggered = true;
@@ -79,11 +150,11 @@ const prompt = () => {
             return;  // use return to avoid trigger invalid command check
         }
 
-        if (versionTriggered) {
-            versionTriggered = false;
-            prompt();
-            return;
-        }
+        // if (versionTriggered) {
+        //     versionTriggered = false;
+        //     prompt();
+        //     return;
+        // }
 
         const [command, ...args] = input.split(' ');
         // handle manual exit
@@ -98,20 +169,6 @@ const prompt = () => {
             prompt();
             return;
         }
-
-        // if (!program.commands.some((cmd) => cmd._name === command)) {
-        //     console.log(`command inconnue: ${command}`);
-        //     console.log('Utiliser --help for voir tout');
-        //     prompt();
-        // }
-
-        // const helpIndex = args.indexOf('--help');
-        // if (helpIndex !== -1) {
-        //     args.splice(helpIndex, 1);
-        //     program.parse(['node', 'index.js', command, ...args, '--help']);
-        //     prompt();
-        //     return;
-        // }
 
         // program.parse([process.argv[0], process.argv[1], command, ...args]);
         // if (program.parse(['node', 'more_commands_terminal.js', command, ...args])) {
