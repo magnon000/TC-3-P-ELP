@@ -32,8 +32,14 @@ main =
 
 -- MODEL
 
+type alias Model =
+  {
+    modelStatus : Status,
+    score : Float,
+    userInput : String
+  }
 
-type Model
+type Status
   = FailureWords String
   | FailureRand
   | FailureRecuperationDuMotChoisi
@@ -43,6 +49,9 @@ type Model
   | AllWords String
   | OneWord String
   | WordWithData String WordData
+  | GuessingPhase String WordData
+  | GivenUp String WordData
+  --| HintGiven String WordData
 
 type alias WordData =
   { senses : List Sens
@@ -60,12 +69,16 @@ type alias Usage =
 
 init : () -> (Model, Cmd Msg)
 init _ =
-  ( Loading
+  ( modelFromStatus Loading
   , Http.get
       { url = "../static/words.txt"
       , expect = Http.expectString GotText
       }
   )
+
+
+
+
 
 
 
@@ -76,6 +89,9 @@ type Msg
   = GotText (Result Http.Error String)
   | GotRand Int
   | GotEverything (Result Http.Error WordData)
+  | NewUserGuess String
+  | UserGivingUp
+  --| UserAskingHint
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -84,60 +100,54 @@ update msg model =
     GotText result ->
       case result of
         Ok fullText ->
-          (AllWords fullText, Random.generate GotRand (Random.int 1 999))
+          ((modelFromStatus (AllWords fullText)), Random.generate GotRand (Random.int 1 999))
 
         Err error ->
-          case error of
-            Http.BadUrl _ ->
-              (FailureWords "Bad Url", Cmd.none)
-            Http.Timeout ->
-              (FailureWords "Timeout", Cmd.none)
-            Http.NetworkError ->
-              (FailureWords "Network Error", Cmd.none)
-            Http.BadStatus _ ->
-              (FailureWords "Bad Status", Cmd.none)
-            Http.BadBody _ ->
-              (FailureWords "Bad Body", Cmd.none)
+          wordListErrorHandler error
+
     GotRand id ->
-        case model of
+        case model.modelStatus of
             AllWords fullText ->
-                (OneWord (getWordAtIndex id (words fullText)), getWordJson (getWordAtIndex id (words fullText)))
+                ((modelFromStatus (OneWord (getWordAtIndex id (words fullText)))), getWordJson (getWordAtIndex id (words fullText)))
             _ ->
-                (FailureRand, Cmd.none)
+                ((modelFromStatus (FailureRand)), Cmd.none)
     GotEverything result ->
-      case model of
+      case model.modelStatus of
             OneWord theWord ->
                 case result of
                   Ok data ->
-                    (WordWithData theWord data, Cmd.none)
+                    ((modelFromStatus (WordWithData theWord data)), Cmd.none)
                   
                   Err error ->
-                    case error of
-                      Http.BadUrl _ ->
-                        (FailureAPI "Bad Url", Cmd.none)
-                      Http.Timeout ->
-                        (FailureAPI "Timeout", Cmd.none)
-                      Http.NetworkError ->
-                        (FailureAPI "Network Error", Cmd.none)
-                      Http.BadStatus _ ->
-                        (FailureAPI "Bad Status", Cmd.none)
-                      Http.BadBody problem ->
-                        (FailureAPI (String.append "Bad Body" problem), Cmd.none)
+                    jsonErrorHandler error
 
             _ ->
-              (FailureRecuperationDuMotChoisi, Cmd.none)
+              ((modelFromStatus (FailureRecuperationDuMotChoisi)), Cmd.none)
     
-    -- UserGuess guess ->
-    --   case model of ->
-    --     WordWithData theWord data ->
-    --       (GuessingPhase guess theWord data, Cmd.none)
+    NewUserGuess guess ->
+      case model.modelStatus of
+        WordWithData theWord data ->
+          ({ model | modelStatus = (GuessingPhase theWord data), userInput = guess }, Cmd.none)
         
-    --     _ ->
-    --       (OtherFailure, Cmd.none)
+        GuessingPhase theWord data ->
+          ({ model | userInput = guess }, Cmd.none)
+
+        _ ->
+          ((modelFromStatus (OtherFailure), Cmd.none))
+    
+    UserGivingUp ->
+      case model.modelStatus of
+        WordWithData theWord data ->
+          giveUpModel model theWord data
+        
+        GuessingPhase theWord data ->
+          giveUpModel model theWord data
+
+        _ ->
+          ((modelFromStatus (OtherFailure), Cmd.none))
 
     
 
-            
 
 
 
@@ -146,7 +156,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  case model of
+  case model.modelStatus of
     FailureWords reason ->
       text (String.append "Erreur HTTP récupération des mots : " reason)
     
@@ -175,14 +185,14 @@ view model =
       [ text word ]
     
     WordWithData word data ->
-      div [] [
-        h1 [] [text "Try to guess the word"]
-        ,hr [] []
-        ,hr [] []
-        ,wordDataToHtml data
-      ]
+      viewNormal model word data
     
-    --GuessingPhase guess word wordData ->
+    GuessingPhase word data ->
+      viewNormal model word data
+    
+    GivenUp word data->
+      viewNormal model word data
+
 
 
 
@@ -225,43 +235,7 @@ usageDecoder =
 
 
 
-getFirstSense : List Sens -> Sens
-getFirstSense senses = case senses of
-    [] -> (Sens [])
-    (x::xs) -> x
 
-getFirstUsage : List Usage -> Usage
-getFirstUsage usages = case usages of
-    [] -> (Usage "" [])
-    (x::xs) -> x
-
-
-
-
-
-
-
----TEST 
-
-
--- wordDataToHtml : WordData -> Html msg
--- wordDataToHtml wordData =
---   ul [] (List.map sensToHtml wordData.senses)
-
--- sensToHtml : Sens -> Html msg
--- sensToHtml sens =
---   li [] [ (text "meaning :") :: List.map usageToHtml sens.usages ]
-
--- usageToHtml : Usage -> Html msg
--- usageToHtml usage =
---   ul []
---     [ li [] [ text (String.append "word type : " usage.wordType) ]
---     , ol [] [(List.map definitionToHtml usage.definitions)]
---     ]
-
--- definitionToHtml : String -> Html msg
--- definitionToHtml definition =
---   li [] [ text definition ]
 
 wordDataToHtml : WordData -> Html msg
 wordDataToHtml wordData =
@@ -285,9 +259,111 @@ definitionToHtml definition =
 
 
 
+viewNormal : Model -> String -> WordData -> Html Msg
+viewNormal model word data = 
+  div [] [
+    div [style "text-align" "center"] [
+      h5 [] [text "MONTEAGUDO Diego & MA Longrui's Word Guesser Game"]
+      ,viewValidation model
+      ,div [style "padding-bottom" "10px", style "padding-top" "10px"] [
+        input [ placeholder "Your guess here", value model.userInput, onInput NewUserGuess ] []
+      ]
+      --, button [ onClick UserAskingHint ] [ text "HINT (-0.5 points)" ]
+      ,hr [] []
+    ],
+    div [] [
+    wordDataToHtml data
+    ]
+  ]
+
+
+viewValidation : Model -> Html Msg
+viewValidation model = case model.modelStatus of
+  GuessingPhase word data ->
+    if word == model.userInput then
+      div [] [
+        div[] [ h1 [ style "padding-left" "30px", style "color" "green"] [ text ":)"]]
+        ,hr [] []
+        ,div [style "padding-bottom" "10px", style "padding-top" "10px"] [
+          h3 [ style "color" "green"] [ text (String.append "YES !!! The word was indeed \"" (String.append word "\" !"))]
+        ]
+      ]
+    else
+      div [] [
+        div[] [ h1 [ style "padding-left" "30px"] [ text "Try to guess the word"]
+        ,hr [] []
+        , button [ onClick UserGivingUp ] [ text "I give up" ]
+        ]
+      ]
+
+  WordWithData word data ->
+    div[] [ h1 [ style "padding-left" "30px"] [ text "Try to guess the word"]
+    ,hr [] []
+    , button [ onClick UserGivingUp ] [ text "I give up" ]
+    ]
+  
+  GivenUp word data ->
+    div [] [
+      div[] [ h1 [ style "padding-left" "30px"] [ text ":|"]]
+      ,hr [] []
+      ,div [style "padding-bottom" "10px", style "padding-top" "10px"] [
+        h3 [ style "color" "red"] [ text (String.append "The word was \"" (String.append word "\"..."))]
+      ]
+    ]
+  
+  _ ->
+    div [] []
 
 
 
+
+
+
+
+
+modelFromStatus : Status -> Model
+modelFromStatus status = (Model status 0 "")
+
+
+giveUpModel : Model -> String -> WordData -> (Model, Cmd Msg)
+giveUpModel model word wordData =
+  if model.score == 0 then
+    ({ model | modelStatus = (GivenUp word wordData) }, Cmd.none)
+  else
+    ({ model | score = (model.score - 1), modelStatus = (GivenUp word wordData) }, Cmd.none)
+
+
+
+
+
+
+
+
+wordListErrorHandler : Http.Error -> (Model, Cmd Msg)
+wordListErrorHandler error = case error of
+  Http.BadUrl _ ->
+    ((modelFromStatus (FailureWords "Bad Url")), Cmd.none)
+  Http.Timeout ->
+    ((modelFromStatus (FailureWords "Timeout")), Cmd.none)
+  Http.NetworkError ->
+    ((modelFromStatus (FailureWords "Network Error")), Cmd.none)
+  Http.BadStatus _ ->
+    ((modelFromStatus (FailureWords "Bad Status")), Cmd.none)
+  Http.BadBody _ ->
+    ((modelFromStatus (FailureWords "Bad Body")), Cmd.none)
+
+jsonErrorHandler : Http.Error -> (Model, Cmd Msg)
+jsonErrorHandler error = case error of
+  Http.BadUrl _ ->
+      ((modelFromStatus (FailureAPI "Bad Url")), Cmd.none)
+  Http.Timeout ->
+      ((modelFromStatus (FailureAPI "Timeout")), Cmd.none)
+  Http.NetworkError ->
+      ((modelFromStatus (FailureAPI "Network Error")), Cmd.none)
+  Http.BadStatus _ ->
+      ((modelFromStatus (FailureAPI "Bad Status")), Cmd.none)
+  Http.BadBody problem ->
+      ((modelFromStatus (FailureAPI (String.append "Bad Body" problem))), Cmd.none)
 
 
 
