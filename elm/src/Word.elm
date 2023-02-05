@@ -2,18 +2,13 @@ module Word exposing (..)
 
 import Browser
 import Html exposing (..)
+import Html exposing (Html, text, pre)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing (Decoder, field)
 import String exposing (words)
 import Random
-import Debug exposing (..)
-
-
-import Browser
-import Html exposing (Html, text, pre)
-import Http
 
 
 
@@ -35,23 +30,11 @@ main =
 type alias Model =
   {
     modelStatus : Status,
-    score : Float,
+    score : Int,
     userInput : String
   }
 
-type Status
-  = FailureWords String
-  | FailureRand
-  | FailureRecuperationDuMotChoisi
-  | FailureAPI String
-  | OtherFailure
-  | Loading
-  | AllWords String
-  | OneWord String
-  | WordWithData String WordData
-  | GuessingPhase String WordData
-  | GivenUp String WordData
-  --| HintGiven String WordData
+-- records utilisés
 
 type alias WordData =
   { senses : List Sens
@@ -65,6 +48,22 @@ type alias Usage =
   { wordType : String
   , definitions : List String
   }
+
+
+type Status
+  = FailureWords String
+  | FailureRand
+  | FailureRecuperationDuMotChoisi
+  | FailureAPI String
+  | OtherFailure
+  | Loading
+  | AllWords String
+  | OneWord String
+  | WordWithData String WordData
+  | GuessingPhase String WordData
+  | GivenUp String WordData
+  | Won String WordData
+  --| HintGiven String WordData
 
 
 init : () -> (Model, Cmd Msg)
@@ -91,32 +90,38 @@ type Msg
   | GotEverything (Result Http.Error WordData)
   | NewUserGuess String
   | UserGivingUp
+  | CorrectlyGuessed
+  | PlayAgain
   --| UserAskingHint
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
+    -- Texte obtenu : Préparer un nombre aléatoire
     GotText result ->
       case result of
         Ok fullText ->
-          ((modelFromStatus (AllWords fullText)), Random.generate GotRand (Random.int 1 999))
+          ({ model | modelStatus = (AllWords fullText)}, (Random.generate GotRand (Random.int 1 999)))
 
         Err error ->
           wordListErrorHandler error
-
+    
+    -- Nombre aléatoire obtenu : choisi le mot correspondant et chercher les définitions
     GotRand id ->
         case model.modelStatus of
             AllWords fullText ->
-                ((modelFromStatus (OneWord (getWordAtIndex id (words fullText)))), getWordJson (getWordAtIndex id (words fullText)))
+                ({ model | modelStatus = OneWord (getWordAtIndex id (words fullText))}, getWordJson (getWordAtIndex id (words fullText)))
             _ ->
                 ((modelFromStatus (FailureRand)), Cmd.none)
+    
+    -- Tout est prêt : rendre possible l'affichage des définitions
     GotEverything result ->
       case model.modelStatus of
             OneWord theWord ->
                 case result of
                   Ok data ->
-                    ((modelFromStatus (WordWithData theWord data)), Cmd.none)
+                    ({ model | modelStatus = (WordWithData theWord data)}, Cmd.none)
                   
                   Err error ->
                     jsonErrorHandler error
@@ -130,7 +135,7 @@ update msg model =
           ({ model | modelStatus = (GuessingPhase theWord data), userInput = guess }, Cmd.none)
         
         GuessingPhase theWord data ->
-          ({ model | userInput = guess }, Cmd.none)
+          correctTest model guess theWord data
 
         _ ->
           ((modelFromStatus (OtherFailure), Cmd.none))
@@ -145,6 +150,17 @@ update msg model =
 
         _ ->
           ((modelFromStatus (OtherFailure), Cmd.none))
+    
+    CorrectlyGuessed ->
+      case model.modelStatus of
+        GuessingPhase theWord data ->
+          ({ model | score = (model.score + 1), modelStatus = (Won theWord data)}, Cmd.none)
+        
+        _ ->
+          ((modelFromStatus (OtherFailure), Cmd.none))
+    
+    PlayAgain ->
+      newGameModel model
 
     
 
@@ -173,47 +189,89 @@ view model =
       text "General unspecific failure"
 
     Loading ->
-      text "Loading..."
+      bait model
 
     AllWords fullText ->
-      pre [] [ text fullText ]
+      bait model
     
     OneWord word ->
-      h1 
-      [ style "top" "30px" --marche pas
-      , style "left" "50px"] --marche pas
-      [ text word ]
+      bait model
     
+    -- phase initiale : le joueur peut commencer à écrire
     WordWithData word data ->
-      viewNormal model word data
+      div [] [
+        div [style "text-align" "center"] [
+            partieHaute "Try to guess the word" model
+            ,button [ onClick UserGivingUp ] [ text "Give up ( -1 point)" ]
+          ,div [style "padding-bottom" "10px", style "padding-top" "10px"] [
+            input [ placeholder "Your guess here", value model.userInput, onInput NewUserGuess ] []
+          ,hr [] []
+          ]
+        ],
+        div [] [
+          wordDataToHtml data
+        ]
+      ]
     
+    -- le joueur a déjà écrit au moins 1 fois
     GuessingPhase word data ->
-      viewNormal model word data
+      div [] [
+        div [style "text-align" "center"] [
+          partieHaute "Try to guess the word" model
+          ,button [ onClick UserGivingUp ] [ text "Give up ( -1 point)" ]
+          ,div [style "padding-bottom" "10px", style "padding-top" "10px"] [
+            input [ placeholder "Your guess here", value model.userInput, onInput NewUserGuess ] []
+          ]
+          --, button [ onClick UserAskingHint ] [ text "HINT (-0.5 points)" ]
+          ,hr [] []
+        ],
+        div [] [
+          wordDataToHtml data
+        ]
+      ]
     
+    -- abandon
     GivenUp word data->
-      viewNormal model word data
+      div [] [
+        div [style "text-align" "center"] [
+          partieHaute ":|" model
+          ,div [style "padding-bottom" "10px", style "padding-top" "10px"] [
+            h3 [ style "color" "red"] [ text (String.append "The word was \"" (String.append word "\"..."))]
+          ]
+          --, button [ onClick UserAskingHint ] [ text "HINT (-0.5 points)" ]
+          ,button [ onClick PlayAgain ] [ text "Continue to play" ]
+          ,hr [] []
+        ],
+        div [] [
+          wordDataToHtml data
+        ]
+      ]
+
+    -- victoire
+    Won word data ->
+      div [] [
+        div [style "text-align" "center"] [
+            partieHaute ":)" model
+            ,div [style "padding-bottom" "10px", style "padding-top" "10px"] [
+              h3 [ style "color" "green"] [ text (String.append "YES !!! The word was indeed \"" (String.append word "\" !"))]
+            ]
+        --, button [ onClick UserAskingHint ] [ text "HINT (-0.5 points)" ]
+        ,button [ onClick PlayAgain ] [ text "Continue to play" ]
+        ,hr [] []
+        ]
+        ,div [] [
+          wordDataToHtml data
+        ]
+      ]
 
 
 
 
 
-getWordAtIndex : Int -> List String -> String
-getWordAtIndex index liste = case liste of
-    [] -> "ERROR (not the word error)"
-    (x::xs) -> case index of
-        0 -> x
-        _ -> getWordAtIndex (index-1) xs --dit erreur sur vscode mais fonctionne...
 
+-- a mettre dans module séparé
 
-
-
-getWordJson : String -> Cmd Msg
-getWordJson word =
-  Http.get
-    { url = (String.append "https://api.dictionaryapi.dev/api/v2/entries/en/" word)
-    , expect = Http.expectJson GotEverything jsonDecoder
-    }
-
+-- DECODEURS
 
 jsonDecoder : Decoder WordData
 jsonDecoder =
@@ -232,10 +290,7 @@ usageDecoder =
 
 
 
-
-
-
-
+-- FONCTIONS D'AFFICHAGE DU JSON
 
 wordDataToHtml : WordData -> Html msg
 wordDataToHtml wordData =
@@ -258,73 +313,73 @@ definitionToHtml definition =
 
 
 
+getWordJson : String -> Cmd Msg
+getWordJson word =
+  Http.get
+    { url = (String.append "https://api.dictionaryapi.dev/api/v2/entries/en/" word)
+    , expect = Http.expectJson GotEverything jsonDecoder
+    }
 
-viewNormal : Model -> String -> WordData -> Html Msg
-viewNormal model word data = 
+getWordAtIndex : Int -> List String -> String
+getWordAtIndex index liste = case liste of
+    [] -> "ERROR (not the word error)"
+    (x::xs) -> case index of
+        0 -> x
+        _ -> getWordAtIndex (index-1) xs --dit erreur sur vscode mais fonctionne...
+
+
+
+
+
+
+
+
+
+-- AIDE A L'AFFICHAGE
+
+-- Elements toujours présents en haut de la page
+partieHaute : String -> Model -> Html Msg
+partieHaute contenu model =
+    div [] [
+      h5 [] [text "MONTEAGUDO Diego & MA Longrui's Word Guesser Game"]
+      ,div [] [
+        div[] [ h1 [ style "padding-left" "30px"] [ text contenu]]
+      ]
+      ,h3 [] [ text (String.append "Score: " (String.fromInt model.score))]
+      ,hr [] []
+    ]
+
+
+-- Elements qui ne font rien pendant les phases de chargement (fluidité visuelle)
+bait : Model -> Html Msg
+bait model =
   div [] [
     div [style "text-align" "center"] [
-      h5 [] [text "MONTEAGUDO Diego & MA Longrui's Word Guesser Game"]
-      ,viewValidation model
+      partieHaute "Loading..." model
+      ,button [ ] [ text "Give up ( -1 point)" ]
       ,div [style "padding-bottom" "10px", style "padding-top" "10px"] [
-        input [ placeholder "Your guess here", value model.userInput, onInput NewUserGuess ] []
+        input [ placeholder "Your guess here"] []
+        ,hr [] []
       ]
-      --, button [ onClick UserAskingHint ] [ text "HINT (-0.5 points)" ]
-      ,hr [] []
-    ],
-    div [] [
-    wordDataToHtml data
     ]
   ]
 
 
-viewValidation : Model -> Html Msg
-viewValidation model = case model.modelStatus of
-  GuessingPhase word data ->
-    if word == model.userInput then
-      div [] [
-        div[] [ h1 [ style "padding-left" "30px", style "color" "green"] [ text ":)"]]
-        ,hr [] []
-        ,div [style "padding-bottom" "10px", style "padding-top" "10px"] [
-          h3 [ style "color" "green"] [ text (String.append "YES !!! The word was indeed \"" (String.append word "\" !"))]
-        ]
-      ]
-    else
-      div [] [
-        div[] [ h1 [ style "padding-left" "30px"] [ text "Try to guess the word"]
-        ,hr [] []
-        , button [ onClick UserGivingUp ] [ text "I give up" ]
-        ]
-      ]
-
-  WordWithData word data ->
-    div[] [ h1 [ style "padding-left" "30px"] [ text "Try to guess the word"]
-    ,hr [] []
-    , button [ onClick UserGivingUp ] [ text "I give up" ]
-    ]
-  
-  GivenUp word data ->
-    div [] [
-      div[] [ h1 [ style "padding-left" "30px"] [ text ":|"]]
-      ,hr [] []
-      ,div [style "padding-bottom" "10px", style "padding-top" "10px"] [
-        h3 [ style "color" "red"] [ text (String.append "The word was \"" (String.append word "\"..."))]
-      ]
-    ]
-  
-  _ ->
-    div [] []
 
 
 
+-- FONCTIONS MODELES
 
-
-
-
-
+-- Création rapide d'un modèle avec un status précis
 modelFromStatus : Status -> Model
 modelFromStatus status = (Model status 0 "")
 
+-- Recommencer depuis le modèle initial en gardant le score
+newGameModel : Model -> (Model, Cmd Msg)
+newGameModel model = ((Model Loading model.score ""), Http.get { 
+  url = "../static/words.txt" , expect = Http.expectString GotText })
 
+-- Pour ne pas aller en dessous de 0 en score
 giveUpModel : Model -> String -> WordData -> (Model, Cmd Msg)
 giveUpModel model word wordData =
   if model.score == 0 then
@@ -333,12 +388,22 @@ giveUpModel model word wordData =
     ({ model | score = (model.score - 1), modelStatus = (GivenUp word wordData) }, Cmd.none)
 
 
+-- Gestion de la réussite
+correctTest : Model -> String -> String -> WordData -> (Model, Cmd Msg)
+correctTest model guess word wordData =
+  if word == guess then
+    ({ model | userInput = guess, score = model.score + 1, modelStatus = (Won word wordData) }, Cmd.none)
+  else
+    ({model | userInput = guess}, Cmd.none)
 
 
 
 
 
 
+-- GESTION DES ERREURS
+
+-- Erreurs de chargement des mots
 wordListErrorHandler : Http.Error -> (Model, Cmd Msg)
 wordListErrorHandler error = case error of
   Http.BadUrl _ ->
@@ -352,6 +417,7 @@ wordListErrorHandler error = case error of
   Http.BadBody _ ->
     ((modelFromStatus (FailureWords "Bad Body")), Cmd.none)
 
+--Erreurs de chargement du json
 jsonErrorHandler : Http.Error -> (Model, Cmd Msg)
 jsonErrorHandler error = case error of
   Http.BadUrl _ ->
@@ -364,6 +430,15 @@ jsonErrorHandler error = case error of
       ((modelFromStatus (FailureAPI "Bad Status")), Cmd.none)
   Http.BadBody problem ->
       ((modelFromStatus (FailureAPI (String.append "Bad Body" problem))), Cmd.none)
+
+
+
+
+
+
+
+
+
 
 
 
