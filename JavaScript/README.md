@@ -17,7 +17,7 @@
 * Exit shell on CTRL-P (ça marche avec CTRL-C ou exit)
 ## Explication technique
 
-1. On utilise le package "commander" pour facilement créer les nouvelles commendes, les deux commendes "timeis" et "roll" démontrent les 2 façons de passer les paramètres.
+1. On utilise le package "commander" pour facilement créer les nouvelles commandes, les deux commendes "timeis" et "roll" démontrent les 2 façons de passer les paramètres.
 
 2. Anisi on intègre les commands `Shell` ou `CMD` etc. selon l'OS. Par exemple, si on lance le programme JavaScript par `Command Prompt` de Microsoft, on peut utiliser les commandes de `Command Prompt`.
 ## Known issues

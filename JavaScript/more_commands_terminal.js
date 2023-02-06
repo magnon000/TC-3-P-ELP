@@ -57,7 +57,7 @@ program
     .version("1.0")
     .description('------lister tous processus')
     .action(() => {
-        if (os.platform() === 'linux') {
+        if (os.platform() === 'linux' || os.platform() === 'darwin') {
             exec('ps -A', (err, stdout, stderr) => {
                 if (err) {
                     console.error(`\nErreur: ${err}`);
