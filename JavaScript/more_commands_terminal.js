@@ -38,6 +38,7 @@ program
 
 program
     .command('roll <arg1>')
+    .version("1.0")
     .description('------lancer les dés de Dn (exemple. D20: 1-20, CMD: roll 20')
     .action((arg1) => {
         console.log("Lancer un dé:")
@@ -53,6 +54,7 @@ program
 
 program
     .command('lp')
+    .version("1.0")
     .description('------lister tous processus')
     .action(() => {
         if (os.platform() === 'linux') {
@@ -78,7 +80,7 @@ program
                 }
                 let processes = stdout.split('\n');
                 processes.shift();  // remove header row
-                processes = processes.map((p, index) => `${index + 1}. ${p}`);
+                processes = processes.map((p, index) => `${index - 1}. ${p}`);
                 console.log(processes.join('\n'));
                 prompt();
             });
@@ -86,11 +88,12 @@ program
     });
 
 program
-    .command("bing [options] <processId>")
+    .command("bing [options]")
+    .version("1.0")
     .description("------tuer, mettre en pause ou reprendre un processus")
-    .option("-k, --kill", "tuer un processus")
-    .option("-p, --pause", "mettre en pause un processus")
-    .option("-c, --continue", "reprendre un processus")
+    .option("-k <processId>, --kill <processId>", "tuer un processus")
+    .option("-p <processId>, --pause <processId>", "mettre en pause un processus, que sur Linux")
+    .option("-c <processId>, --continue <processId>", "reprendre un processus, que sur Linux")
     .action((options, processId) => {
         const processMap = new Map();
         if (!processId) {
@@ -98,15 +101,16 @@ program
             return;
         }
         const childProcess = processMap.get(processId);
+        // const childProcess = processMap.get(parseInt(processId)); // not working: Processus non trouvé: [object Object]
         if (!childProcess) {
             console.log(processId)
             console.error(`Erreur: Processus non trouvé: ${processId}`);
             return;
         }
         if (options.kill) {
-            console.log(`Tuer: ${processId}`);
+            console.log(`Tuer: ${(processId)}`);
             childProcess.kill();
-            processMap.delete(processId);
+            processMap.delete((processId));
             console.log(`Tué: ${processId}`);
         } else if (options.pause) {
             console.log(`Mettre en pause: ${processId}`);
