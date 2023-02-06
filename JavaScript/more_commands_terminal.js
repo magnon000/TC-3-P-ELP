@@ -58,7 +58,7 @@ program
     .description('------lister tous processus')
     .action(() => {
         if (os.platform() === 'linux' || os.platform() === 'darwin') {
-            exec('ps -A', (err, stdout, stderr) => {
+            exec('ps -aux', (err, stdout, stderr) => {
                 if (err) {
                     console.error(`\nErreur: ${err}`);
                     prompt();
@@ -79,8 +79,8 @@ program
                     return;
                 }
                 let processes = stdout.split('\n');
-                processes.shift();  // remove header row
-                processes = processes.map((p, index) => `${index - 1}. ${p}`);
+                // processes.shift();  // remove header row
+                processes = processes.map((p, index) => `${index}. ${p}`);
                 console.log(processes.join('\n'));
                 prompt();
             });
@@ -94,36 +94,57 @@ program
     .option("-k <processId>, --kill <processId>", "tuer un processus")
     .option("-p <processId>, --pause <processId>", "mettre en pause un processus, que sur Linux")
     .option("-c <processId>, --continue <processId>", "reprendre un processus, que sur Linux")
-    .action((options, processId) => {
-        const processMap = new Map();
-        if (!processId) {
-            console.error("Erreur: 'processId' manquant");
-            return;
-        }
-        const childProcess = processMap.get(processId);
-        // const childProcess = processMap.get(parseInt(processId)); // not working: Processus non trouvé: [object Object]
-        if (!childProcess) {
-            console.log(processId)
-            console.error(`Erreur: Processus non trouvé: ${processId}`);
-            return;
-        }
-        if (options.kill) {
-            console.log(`Tuer: ${(processId)}`);
-            childProcess.kill();
-            processMap.delete((processId));
-            console.log(`Tué: ${processId}`);
-        } else if (options.pause) {
-            console.log(`Mettre en pause: ${processId}`);
-            childProcess.stdin.pause();
-            console.log(`Mis en pause: ${processId}`);
-        } else if (options.continue) {
-            console.log(`Reprendre: ${processId}`);
-            childProcess.stdin.resume();
-            console.log(`Repris: ${processId}`);
-        } else {
-            console.error("Erreur: action non valide");
-        }
+    .action((options, processId) => {  // processId should be [object Object]
+        let cmd = process.platform === 'win32' ? 'taskkill /pid ' + parseInt(processId) +' -f' : 'kill ' + parseInt(processId);
+        exec(cmd, (err, stdout, stderr) => {
+            if (err) {
+                console.error(`\nErreur: ${err}`);
+                prompt();
+                return;
+            }
+            prompt();
+        });
     });
+        // var prog='';
+        // exec(cmd, function(err, stdout, stderr) {
+        //     if(err){ return console.log(err); }
+        //     stdout.split('\n').filter(function(line){
+        //         var p=line.trim().split(/\s+/),pname=p[0],pid=p[1];
+        //         if(pname.toLowerCase().indexOf(prog)>=0 && parseInt(pid)){
+        //             console.log(pname,pid);
+        //         }
+        //     });
+        // });
+        // if (!childProcess) {
+        //     console.error(`Erreur: Processus non trouvé: ${processId}`);
+        //     return;
+        // }
+    //     const processMap = new Map();
+    //     if (!processId) {
+    //         console.error("Erreur: 'processId' manquant");
+    //         return;
+    //     }
+    //     // const parsedProcessId = JSON.parse(processId); // nope
+    //     // const childProcess = processMap.get(parsedProcessId);
+    //     const childProcess = processMap.get(processId)
+    //     if (options.kill) {
+    //         console.log(`Tuer: ${(processId)}`);
+    //         childProcess.kill();
+    //         // process.kill(processId);
+    //         processMap.delete((processId));
+    //         console.log(`Tué: ${processId}`);
+    //     } else if (options.pause) {
+    //         console.log(`Mettre en pause: ${processId}`);
+    //         childProcess.stdin.pause();
+    //         console.log(`Mis en pause: ${processId}`);
+    //     } else if (options.continue) {
+    //         console.log(`Reprendre: ${processId}`);
+    //         childProcess.stdin.resume();
+    //         console.log(`Repris: ${processId}`);
+    //     } else {
+    //         console.error("Erreur: action non valide");
+    //     }
+    // });
 
 
 program.on('command:*', () => {
