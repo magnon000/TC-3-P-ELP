@@ -80,7 +80,7 @@ func process(conn net.Conn) {
 	var str_temp string
 	var out_a, out_b [][]float64
 	var matrix_mul_list [][][]float64
-	for num, matrix_out := range matrix_output_list { // ! assert list has pair num of matrix
+	for num, matrix_out := range matrix_output_list {
 		if num%2 != 0 {
 			out_a, out_b = Output(str_temp, matrix_out)
 			if len(out_b) == 0 || out_b == nil {
@@ -93,6 +93,7 @@ func process(conn net.Conn) {
 			str_temp = matrix_out
 		}
 	}
+	fmt.Println("output done")
 	// fmt.Println("mul list:", matrix_mul_list)
 	// matrix ops
 	var mRes [][]float64
@@ -102,12 +103,14 @@ func process(conn net.Conn) {
 		}
 		if num != 0 {
 			mRes = MultiplicationMatricielle(mRes, matrix_mul)
+			fmt.Println("mul %v ok %v", num, mRes)
 		} else if num == 0 {
 			mRes = matrix_mul
+			fmt.Println("mul 1 ok", mRes)
 		}
 	}
-
-	fmt.Printf("### Result for %v: %v\n", conn, mRes)
+	fmt.Println("##################################################")
+	fmt.Printf("Result for %v: %v\n", conn, mRes)
 	fmt.Println("##################################################")
 
 	// b. Transmist to client

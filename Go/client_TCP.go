@@ -19,8 +19,8 @@ const (
 	buffer_size    = 10240 // max size for one buffer
 	start_phrase   = "\nsend_start\n"
 	end_phrase     = "\nsend_end\n"
-	matriceA_raw   = "matrix_input_txt/a.txt"
-	matriceB_raw   = "matrix_input_txt/b.txt"
+	matriceA_raw   = "matrix_input_txt/1a.txt"
+	matriceB_raw   = "matrix_input_txt/1b.txt"
 	matriceC_raw   = "matrix_input_txt/c.txt"
 	matriceFin_raw = "matrix_input_txt/end.txt" // use this if matrix number is not pair
 	resultFile     = "./res.txt"
@@ -106,7 +106,8 @@ func main() {
 		// shutdownWrite(conn)
 
 		// ! assert matrix_raw_list pair
-		var matrix_raw_list = [...]string{matriceA_raw, matriceB_raw, matriceC_raw, matriceFin_raw}
+		// var matrix_raw_list = [...]string{matriceA_raw, matriceB_raw, matriceC_raw, matriceFin_raw}
+		var matrix_raw_list = [...]string{matriceA_raw, matriceB_raw}
 		var matrix_trans_list [][]byte
 		var trans_a, trans_b []byte
 		var trans_temp string
