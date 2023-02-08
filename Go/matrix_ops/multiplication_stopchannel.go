@@ -61,7 +61,7 @@ func workerMultiplicationPartielle(jobs chan *portionTodo, result chan *portionF
 			for x := 0; x < nombreColonnes; x++ {
 				ligne[x] = 0
 				for i := 0; i < tailleRecurrente; i++ {
-					ligne[i] += (*job.ligneYmatriceA)[i] * (*job.matriceB)[i][x]
+					ligne[x] += (*job.ligneYmatriceA)[i] * (*job.matriceB)[i][x]
 				}
 			}
 
