@@ -103,7 +103,7 @@ func process(conn net.Conn) {
 		}
 		if num != 0 {
 			mRes = MultiplicationMatricielle(mRes, matrix_mul)
-			fmt.Println("mul %v ok %v", num, mRes)
+			fmt.Printf("mul %v ok %v", num, mRes)
 		} else if num == 0 {
 			mRes = matrix_mul
 			fmt.Println("mul 1 ok", mRes)
