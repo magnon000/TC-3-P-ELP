@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -50,6 +51,9 @@ func shutdownWrite(conn net.Conn) {
 }
 
 func main() {
+	//0. start chrono
+	startClientProgram := time.Now()
+	
 	//1. Dial server
 	conn, err := net.Dial(protocol, ip_addr+":"+port)
 	if err != nil {
@@ -125,6 +129,7 @@ func main() {
 	}
 
 	// 4. Read from server
+	startReception := time.Now()
 	var full_buf []byte
 	for {
 		var buf [buffer_size]byte
@@ -136,8 +141,14 @@ func main() {
 		full_buf = BytesCombine(full_buf, buf[:n])
 	}
 	fmt.Printf("Full content from %v in buffer:\n%v\n", conn, string(full_buf))
+	endReception := time.Now()
+	receptionTime := endReception.Sub(startReception)
+	fmt.Println("Durée de la réception :",receptionTime)
 
 	defer conn.Close()
 
 	Save(resultFile, string(full_buf))
+	
+	endClientProgram := time.Now()
+	fmt.Println("Durée totale complète :",endClientProgram.Sub(startClientProgram))
 }
