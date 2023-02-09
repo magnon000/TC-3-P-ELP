@@ -107,14 +107,27 @@ func process(conn net.Conn) {
 	// b. Transmist to client
 	// float64 to string
 	var out_str string
+	// for num, one_list := range mRes {
+	// 	fmt.Println(num)
+	// 	for _, value := range one_list {
+	// 		out_str = out_str + strconv.FormatFloat(value, 'f', 2, 64) + num_split // this takes FOREVER if we accumulate all data in one string
+	// 	}
+	// 	// out_str = out_str[0:len(out_str)-1] + string("\n")
+	// 	out_str = out_str + string("\n")
+	// }
+	// fmt.Println("ready to send")
 	for _, one_list := range mRes {
 		for _, value := range one_list {
 			out_str = out_str + strconv.FormatFloat(value, 'f', 2, 64) + num_split
 		}
-		out_str = out_str[0:len(out_str)-1] + string("\n")
+		// out_str = out_str[0:len(out_str)-1] + string("\n")
+		out_str = out_str + string("\n")
+		// string to byte
+		Trans(conn, []byte(out_str))
+		out_str = ""
 	}
-	// string to byte
-	Trans(conn, []byte(out_str))
+	fmt.Println("ready to send")
+
 	defer conn.Close()
 	fmt.Printf("!!! Client %v job done, disconnected.\n", conn)
 }

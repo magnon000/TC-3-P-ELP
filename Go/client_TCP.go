@@ -18,15 +18,15 @@ const (
 	buffer_size    = 10240 // max size for one buffer
 	start_phrase   = "\nsend_start\n"
 	end_phrase     = "\nsend_end\n"
-	matriceA_raw   = "matrix_input_txt/a.txt"
-	matriceB_raw   = "matrix_input_txt/b.txt"
+	matriceA_raw   = "matrix_input_txt/8236_A.txt"
+	matriceB_raw   = "matrix_input_txt/8236_B.txt"
 	matriceC_raw   = "matrix_input_txt/c.txt"
 	matriceD_raw   = "matrix_input_txt/d.txt"
 	matriceE_raw   = "matrix_input_txt/e.txt"
 	matriceF_raw   = "matrix_input_txt/f.txt"
 	matriceG_raw   = "matrix_input_txt/g.txt"
 	matriceFin_raw = "matrix_input_txt/end.txt" // use this if matrix number is not pair
-	matriceNbr     = 8                          // ! assert matriceNbr pair
+	matriceNbr     = 2                          // ! assert matriceNbr pair
 	resultFile     = "./res.txt"
 )
 
