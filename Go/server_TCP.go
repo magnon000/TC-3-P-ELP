@@ -144,7 +144,7 @@ func process(conn net.Conn) {
 	defer conn.Close()
 	fmt.Printf("!!! Client %v job done, disconnected.\n", conn)
 	endGestionClient := time.Now()
-	fmt.Println("-----CHRONOMÈTRE------)
+	fmt.Println("-----CHRONOMÈTRE------")
 	fmt.Println("Rappel durée de la réception :",dureeReception)
 	fmt.Println("Rappel durée de la conversion :",dureeConversion)
 	fmt.Println("Rappel durée de la multiplication :",dureeCalcul)
