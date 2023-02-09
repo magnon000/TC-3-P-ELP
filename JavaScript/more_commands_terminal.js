@@ -37,15 +37,15 @@ program
     });
 
 program
-    .command('roll <arg1>')
+    .command('roll <nbrFace>')
     .version("1.0")
-    .description('------lancer les dés de Dn (exemple. D20: 1-20, CMD: roll 20')
-    .action((arg1) => {
+    .description('------lancer un dé de Dn (exemple. D20: 1-20, CMD: roll 20')
+    .action((nbrFace) => {
         console.log("Lancer un dé:")
-        const randomNumber = Math.floor(Math.random() * arg1) + 1;
+        const randomNumber = Math.floor(Math.random() * nbrFace) + 1;
         if (randomNumber === 1) {
             console.log("Total failure!");
-        } else if (randomNumber == arg1) {  // ignore warning
+        } else if (randomNumber == nbrFace) {  // ignore warning
             console.log("Huge success!");
         } else {
             console.log(randomNumber);
@@ -94,13 +94,15 @@ program
     .option("-k <processId>, --kill <processId>", "tuer un processus")
     .option("-p <processId>, --pause <processId>", "mettre en pause un processus, que sur Linux")
     .option("-c <processId>, --continue <processId>", "reprendre un processus, que sur Linux")
-    .action((options, processId) => {  // processId should be [object Object]
-        let cmd = process.platform === 'win32' ? 'taskkill /pid ' + parseInt(processId) +' -f' : 'kill ' + parseInt(processId);
+    .action((options, processId) => {  // processId is [object Object]: {'k': 123}
+        // if (options.kill processId) {
+        //
+        // }
+        let cmd = process.platform === 'win32' ? 'taskkill /pid ' + processId['k'] +' -f' : 'kill ' + processId['k'];
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.error(`\nErreur: ${err}`);
                 prompt();
-                return;
             }
             prompt();
         });
@@ -153,12 +155,12 @@ program.on('command:*', () => {
 });
 
 program.unknownOption = (flag) => {
-    console.error(`Unknown option: ${flag}`);
+    console.error(`Option inconnue: ${flag}`);
     prompt();
 };
 
 rl.on("SIGINT", function () {
-    console.log("Exit on CTRL+C...");
+    console.log("Exit par CTRL+C...");
     process.exit();
 });
 
