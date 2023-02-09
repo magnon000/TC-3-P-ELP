@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -22,6 +23,7 @@ const (
 
 // handle request, type: net.Conn
 func process(conn net.Conn) {
+	startGestionClient := time.Now()
 	var full_buf []byte
 	// a. Read from client
 	for {
@@ -38,6 +40,9 @@ func process(conn net.Conn) {
 		// }
 	}
 	// fmt.Printf("Full content from %v in buffer:\n%v\n", conn, string(full_buf))
+	endReception := time.Now()
+	dureeReception := endReception.Sub(startGestionClient)
+	fmt.Println("Durée de la réception :",dureeReception)
 
 	// regex each matrix
 	regex := regexp.MustCompile(start_phrase + `(\s|.)+?` + end_phrase)
@@ -78,6 +83,10 @@ func process(conn net.Conn) {
 			str_temp = matrix_out
 		}
 	}
+	
+	endConversion := time.Now()
+	dureeConversion := endConversion.Sub(endReception)
+	fmt.Println("Durée de la conversion des matrices :",dureeConversion)
 
 	// fmt.Println("mul list:", matrix_mul_list)
 	// matrix ops
@@ -103,7 +112,11 @@ func process(conn net.Conn) {
 	// fmt.Println("####################################################")
 	// fmt.Printf("Result for %v: %v\n", conn, mRes)
 	fmt.Println("####################################################")
-
+	
+	endCalcul := time.Now()
+	dureeCalcul := endCalcul.Sub(endConversion)
+	fmt.Println("Durée de la multiplication :",dureeCalcul)
+	
 	// b. Transmist to client
 	// float64 to string
 	var out_str string
@@ -130,6 +143,13 @@ func process(conn net.Conn) {
 
 	defer conn.Close()
 	fmt.Printf("!!! Client %v job done, disconnected.\n", conn)
+	endGestionClient := time.Now()
+	fmt.Println("-----CHRONOMÈTRE------)
+	fmt.Println("Rappel durée de la réception :",dureeReception)
+	fmt.Println("Rappel durée de la conversion :",dureeConversion)
+	fmt.Println("Rappel durée de la multiplication :",dureeCalcul)
+	fmt.Println("Durée de l'envoi au client :",endGestionClient.Sub(endCalcul))
+	fmt.Println("Durée totale de la gestion du client :",endGestionClient.Sub(startGestionClient))
 }
 
 func main() {
