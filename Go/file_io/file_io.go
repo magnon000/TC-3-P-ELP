@@ -15,14 +15,18 @@ func Input(matrice_a string, matrice_b string) ([]byte, []byte) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("A =")
-	fmt.Println(string(contentA))
+	if len(matrice_a) < 40 {
+		fmt.Println("Une matrice =")
+		fmt.Println(string(contentA))
+	}
 	contentB, err := os.ReadFile(matrice_b)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("B =")
-	fmt.Println(string(contentB))
+	if len(matrice_a) < 40 {
+		fmt.Println("Une matrice = (vide s'il n'y a plus)")
+		fmt.Println(string(contentB))
+	}
 	return contentA, contentB
 }
 
@@ -31,7 +35,7 @@ func Output(content_a string, content_b string) ([][]float64, [][]float64) {
 		A_lines := strings.Split(content_a, "\n")
 		A_line_len := len(A_lines)
 		A_col_len := len(strings.Split(A_lines[0], ","))
-		fmt.Println("\nmatrice A de taille: (", A_line_len, A_col_len, ")")
+		fmt.Println("Une matrice de taille:: (", A_line_len, A_col_len, ")")
 		var matriceA [][]float64
 		for y := 0; y < A_line_len; y++ {
 			temp_line := A_lines[y]
@@ -64,8 +68,8 @@ func Output(content_a string, content_b string) ([][]float64, [][]float64) {
 		B_line_len := len(B_lines)                // ligne de matrice B
 		A_col_len := len(strings.Split(A_lines[0], ","))
 		B_col_len := len(strings.Split(B_lines[0], ","))
-		fmt.Println("\nmatrice A de taille: (", A_line_len, A_col_len, ")")
-		fmt.Println("matrice B de taille: (", B_line_len, B_col_len, ")")
+		fmt.Println("Une matrice de taille: (", A_line_len, A_col_len, ")")
+		fmt.Println("Une matrice de taille: (", B_line_len, B_col_len, ")")
 
 		// todo: verify this in server script
 		// if A_line_len != B_col_len {
@@ -136,6 +140,7 @@ func Trans(connection net.Conn, data []byte) {
 
 // save string to .txt
 func Save(fileName string, content string) {
+	// file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE, 0666)
 	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		fmt.Printf("Fail to open file: %v\n		%v", fileName, err)
