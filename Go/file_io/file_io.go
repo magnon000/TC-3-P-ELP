@@ -2,16 +2,13 @@ package file_io
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"net"
 	"os"
 	"strconv"
 	"strings"
 )
-
-// const (
-// 	matriceA = "a.txt"
-// 	matriceB = "b.txt"
-// )
 
 func Input(matrice_a string, matrice_b string) ([]byte, []byte) {
 	contentA, err := os.ReadFile(matrice_a)
@@ -30,9 +27,6 @@ func Input(matrice_a string, matrice_b string) ([]byte, []byte) {
 }
 
 func Output(content_a string, content_b string) ([][]float64, [][]float64) {
-	// mA := len(content_a) /* len(contentA[0])*/
-	// mB := len(content_b) /* len(contentB[0])*/
-	// fmt.Println(mA, mB)
 	if content_b == "" {
 		A_lines := strings.Split(content_a, "\n")
 		A_line_len := len(A_lines)
@@ -44,7 +38,6 @@ func Output(content_a string, content_b string) ([][]float64, [][]float64) {
 			temp_line = strings.Replace(temp_line, "\n", "", -1)
 			temp_line = strings.Replace(temp_line, "\r", "", -1)
 			a_line := strings.Split(temp_line, ",")
-			fmt.Println("a_line:", a_line)
 			var out_line []float64
 			for index := 0; index < A_col_len; index++ {
 				num, erreur := strconv.ParseFloat(a_line[index], 64)
@@ -56,7 +49,7 @@ func Output(content_a string, content_b string) ([][]float64, [][]float64) {
 			}
 			matriceA = append(matriceA, out_line)
 		}
-		fmt.Println("\nmatrice A de taille: (", A_line_len, A_col_len, ")")
+		// fmt.Println("matriceA=", matriceA)
 		return matriceA, [][]float64{}
 	} else {
 		// // fmt.Println(A_lines[0])
@@ -97,7 +90,8 @@ func Output(content_a string, content_b string) ([][]float64, [][]float64) {
 			}
 			matriceA = append(matriceA, out_line)
 		}
-		fmt.Println("matriceA =", matriceA)
+		// fmt.Println("matriceA =", matriceA)
+
 		//matrice B
 		for y := 0; y < B_line_len; y++ {
 			temp_line := B_lines[y]
@@ -114,7 +108,8 @@ func Output(content_a string, content_b string) ([][]float64, [][]float64) {
 			}
 			matriceB = append(matriceB, out_line)
 		}
-		fmt.Println("matriceB =", matriceB)
+		// fmt.Println("matriceB =", matriceB)
+
 		// A_line_len = len(matriceA)
 		// A_col_len = len(matriceA[0])
 		// fmt.Println("\nmatrice A de taille: (", A_line_len, A_col_len, ")")
@@ -125,6 +120,21 @@ func Output(content_a string, content_b string) ([][]float64, [][]float64) {
 	}
 }
 
+// combine all bytes []byte from n buffers to one []byte
+func BytesCombine(pBytes ...[]byte) []byte {
+	return bytes.Join(pBytes, []byte(""))
+}
+
+// send []byte
+func Trans(connection net.Conn, data []byte) {
+	_, err := connection.Write(data)
+	if err != nil {
+		fmt.Printf("Write failed:\n		%v\n", err)
+		panic(err)
+	}
+}
+
+// save string to .txt
 func Save(fileName string, content string) {
 	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {

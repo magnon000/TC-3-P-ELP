@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	. "matrix/file_io"
 	. "matrix/matrix_ops"
@@ -21,20 +20,6 @@ const (
 	num_split    = ","
 )
 
-// combine all bytes from n buffers
-func BytesCombine(pBytes ...[]byte) []byte {
-	return bytes.Join(pBytes, []byte(""))
-}
-
-// send
-func trans(connection net.Conn, data []byte) {
-	_, err := connection.Write(data)
-	if err != nil {
-		fmt.Printf("Write failed:\n		%v\n", err)
-		panic(err)
-	}
-}
-
 // handle request, type: net.Conn
 func process(conn net.Conn) {
 	var full_buf []byte
@@ -43,7 +28,7 @@ func process(conn net.Conn) {
 		var buf [buffer_size]byte
 		n, err := conn.Read(buf[:])
 		if err != nil {
-			fmt.Printf("Connection reading failed %v:\n		%v\n", conn, err)
+			fmt.Printf("Connection reading failed %v:\n		%v(EOF means OK))\n", conn, err)
 			break
 		}
 		// fmt.Printf("Content from client %v:\n%v\n", conn, string(buf[:n]))
@@ -52,18 +37,18 @@ func process(conn net.Conn) {
 		// 	break
 		// }
 	}
-	fmt.Printf("Full content from %v in buffer:\n%v\n", conn, string(full_buf))
+	// fmt.Printf("Full content from %v in buffer:\n%v\n", conn, string(full_buf))
+
 	// regex each matrix
 	regex := regexp.MustCompile(start_phrase + `(\s|.)+?` + end_phrase)
 	matrix_raw_list := regex.FindAllString(string(full_buf), -1)
-	// test
+
+	// test with only 2 matrix
 	// matrix_raw_list[0] = strings.Replace(matrix_raw_list[0], "\nsend_start\n", "", -1)
 	// matrix_raw_list[0] = strings.Replace(matrix_raw_list[0], "\nsend_end\n", "", -1)
-
 	// matrix_raw_list[1] = strings.Replace(matrix_raw_list[1], "\nsend_start\n", "", -1)
 	// matrix_raw_list[1] = strings.Replace(matrix_raw_list[1], "\nsend_end\n", "", -1)
 	// mA, mB := Output(matrix_raw_list[0], matrix_raw_list[1])
-	// // fmt.Println("mA:", mA, "\nmB:", mB)
 	// matC := MultiplicationMatricielle(mA, mB) // then to all matrix in list
 
 	// matrix raw string list
@@ -93,7 +78,7 @@ func process(conn net.Conn) {
 			str_temp = matrix_out
 		}
 	}
-	fmt.Println("output done")
+
 	// fmt.Println("mul list:", matrix_mul_list)
 	// matrix ops
 	var mRes [][]float64
@@ -101,17 +86,23 @@ func process(conn net.Conn) {
 		if matrix_mul == nil {
 			continue
 		}
-		if num != 0 {
-			mRes = MultiplicationMatricielle(mRes, matrix_mul)
-			fmt.Printf("mul %v ok %v", num, mRes)
+		if num != 0 { // verify matrix size
+			if len(mRes[0]) != len(matrix_mul) {
+				fmt.Println("matrice nombre colonnes:", len(mRes[0]), "!=", "matrice nombre lignes", len(matrix_mul))
+				fmt.Println("Multiplication matricielle impossible ! Exporter le resultat des multiplications sans multiplier les matrice(s) de mauvaise taille !")
+				break
+			} else {
+				mRes = MultiplicationMatricielle(mRes, matrix_mul)
+			}
+			// fmt.Printf("mul %v ok %v\n", num, mRes)
 		} else if num == 0 {
 			mRes = matrix_mul
-			fmt.Println("mul 1 ok", mRes)
+			// fmt.Println("mul 1 ok", mRes)
 		}
 	}
-	fmt.Println("##################################################")
-	fmt.Printf("Result for %v: %v\n", conn, mRes)
-	fmt.Println("##################################################")
+	// fmt.Println("####################################################")
+	// fmt.Printf("Result for %v: %v\n", conn, mRes)
+	fmt.Println("####################################################")
 
 	// b. Transmist to client
 	// float64 to string
@@ -123,7 +114,7 @@ func process(conn net.Conn) {
 		out_str = out_str[0:len(out_str)-1] + string("\n")
 	}
 	// string to byte
-	trans(conn, []byte(out_str))
+	Trans(conn, []byte(out_str))
 	defer conn.Close()
 	fmt.Printf("!!! Client %v job done, disconnected.\n", conn)
 }
@@ -147,7 +138,7 @@ func main() {
 		}
 		// 3. open connection, handle request
 		fmt.Printf("Client connected:\n		%v\n", conn) // distinguish clients
-		go process(conn)                              // todo: handle error
+		go process(conn)                              // TODO: handle error
 	}
 	defer listener.Close() // maybe not needed
 }

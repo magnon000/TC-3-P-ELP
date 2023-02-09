@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	. "matrix/file_io"
 	"net"
@@ -19,26 +18,29 @@ const (
 	buffer_size    = 10240 // max size for one buffer
 	start_phrase   = "\nsend_start\n"
 	end_phrase     = "\nsend_end\n"
-	matriceA_raw   = "matrix_input_txt/1a.txt"
-	matriceB_raw   = "matrix_input_txt/1b.txt"
+	matriceA_raw   = "matrix_input_txt/a.txt"
+	matriceB_raw   = "matrix_input_txt/b.txt"
 	matriceC_raw   = "matrix_input_txt/c.txt"
+	matriceD_raw   = "matrix_input_txt/d.txt"
+	matriceE_raw   = "matrix_input_txt/e.txt"
+	matriceF_raw   = "matrix_input_txt/f.txt"
+	matriceG_raw   = "matrix_input_txt/g.txt"
 	matriceFin_raw = "matrix_input_txt/end.txt" // use this if matrix number is not pair
+	matriceNbr     = 8                          // ! assert matriceNbr pair
 	resultFile     = "./res.txt"
 )
 
-// combine all bytes from n buffers
-func BytesCombine(pBytes ...[]byte) []byte {
-	return bytes.Join(pBytes, []byte(""))
-}
-
-// send
-func trans(connection net.Conn, data []byte) {
-	_, err := connection.Write(data)
-	if err != nil {
-		fmt.Printf("Write failed:\n		%v\n", err)
-		panic(err)
-	}
-}
+// ! assert matrix_raw_list pair
+// var matrix_raw_list = [...]string{matriceA_raw, matriceB_raw}
+var matrix_raw_list = [...]string{ // TODO: read .txt names from a file?
+	matriceA_raw,
+	matriceB_raw,
+	matriceC_raw,
+	matriceD_raw,
+	matriceE_raw,
+	matriceF_raw,
+	matriceG_raw,
+	matriceFin_raw}
 
 // shutdown TCP connection to indicate EOF to the other side
 func shutdownWrite(conn net.Conn) {
@@ -80,34 +82,29 @@ func main() {
 				break
 			}
 			// 3. Transmit to server
-			trans(conn, []byte(start_phrase))
-			trans(conn, []byte(data))
-			trans(conn, []byte(end_phrase))
+			Trans(conn, []byte(start_phrase))
+			Trans(conn, []byte(data))
+			Trans(conn, []byte(end_phrase))
 		}
 	} else if input_method == "file" {
-		// test
-		// mA, mB := Input(matriceA_raw, matriceB_raw) //todo: a list for multiple matrix
+		// test with 2 matrix
+		// mA, mB := Input(matriceA_raw, matriceB_raw)
 		// mC, mD := Input(matriceC_raw, matriceFin_raw)
 		// // var data_list [2]uint8{mA, mB}
-		// // for { todo: use for loop here
-		// // 3. Transmit to server
-		// trans(conn, []byte(start_phrase))
-		// trans(conn, mA)
-		// trans(conn, []byte(end_phrase))
-		// trans(conn, []byte(start_phrase))
-		// trans(conn, mB)
-		// trans(conn, []byte(end_phrase))
-		// trans(conn, []byte(start_phrase))
-		// trans(conn, mC)
-		// trans(conn, []byte(end_phrase))
-		// trans(conn, []byte(start_phrase))
-		// trans(conn, mD)
-		// trans(conn, []byte(end_phrase))
+		// Trans(conn, []byte(start_phrase))
+		// Trans(conn, mA)
+		// Trans(conn, []byte(end_phrase))
+		// Trans(conn, []byte(start_phrase))
+		// Trans(conn, mB)
+		// Trans(conn, []byte(end_phrase))
+		// Trans(conn, []byte(start_phrase))
+		// Trans(conn, mC)
+		// Trans(conn, []byte(end_phrase))
+		// Trans(conn, []byte(start_phrase))
+		// Trans(conn, mD)
+		// Trans(conn, []byte(end_phrase))
 		// shutdownWrite(conn)
 
-		// ! assert matrix_raw_list pair
-		// var matrix_raw_list = [...]string{matriceA_raw, matriceB_raw, matriceC_raw, matriceFin_raw}
-		var matrix_raw_list = [...]string{matriceA_raw, matriceB_raw}
 		var matrix_trans_list [][]byte
 		var trans_a, trans_b []byte
 		var trans_temp string
@@ -119,10 +116,10 @@ func main() {
 				trans_temp = matrix_trans
 			}
 		}
-		for _, matrix_trans := range matrix_trans_list {
-			trans(conn, []byte(start_phrase))
-			trans(conn, matrix_trans)
-			trans(conn, []byte(end_phrase))
+		for _, matrix_trans := range matrix_trans_list[:matriceNbr] {
+			Trans(conn, []byte(start_phrase))
+			Trans(conn, matrix_trans)
+			Trans(conn, []byte(end_phrase))
 		}
 		shutdownWrite(conn)
 	}
