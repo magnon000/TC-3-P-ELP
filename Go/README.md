@@ -39,7 +39,7 @@ Example:
 matriceA_raw   = "matrix_input_txt/test_set1/A_1000x500.txt"
 ...
 matriceNbr     = 7 
-var matrix_raw_list = [...]string{ // TODO: read .txt names from a file?
+var matrix_raw_list = [...]string{
 	matriceA_raw,
 	matriceB_raw,
 	matriceC_raw,
@@ -57,3 +57,6 @@ var matrix_raw_list = [...]string{ // TODO: read .txt names from a file?
 ``` 
 ### 3. exception handle
 If one step of multiplication is not possible, previous multiplication result will be saved. (or 1st matrix if 1st multiplication is already not doable)
+
+### 4. Goroutines
+You can specify the number of Goroutines to use in the NOMBRE_GOROUTINES variable of the file matrix_ops/multiplication_stopchannel.go
