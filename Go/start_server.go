@@ -128,7 +128,7 @@ func process(conn net.Conn) {
 	// 	// out_str = out_str[0:len(out_str)-1] + string("\n")
 	// 	out_str = out_str + string("\n")
 	// }
-	// fmt.Println("ready to send")
+
 	for _, one_list := range mRes {
 		for _, value := range one_list {
 			out_str = out_str + strconv.FormatFloat(value, 'f', 2, 64) + num_split
@@ -138,6 +138,21 @@ func process(conn net.Conn) {
 		Trans(conn, []byte(out_str))
 		out_str = ""
 	}
+
+	// // string to byte
+	// var length int
+	// for _, one_list := range mRes {
+	// 	length = len(one_list) - 1
+	// 	for num, value := range one_list {
+	// 		if num < length {
+	// 			Trans(conn, []byte(strconv.FormatFloat(value, 'f', 2, 64)+num_split))
+	// 		} else {
+	// 			Trans(conn, []byte(strconv.FormatFloat(value, 'f', 2, 64)))
+	// 		}
+	// 	}
+	// 	Trans(conn, []byte(string("\n")))
+	// }
+
 	defer conn.Close()
 	fmt.Printf("!!! Client %v job done, disconnected.\n", conn)
 	endGestionClient := time.Now()
