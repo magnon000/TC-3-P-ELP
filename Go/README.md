@@ -7,11 +7,11 @@
 ---
 ## Usage
 ### 1. mode input
-> * manual input all numbers, number is seperated by `,` , line is seperated by `Enter`. 
+> * Manual input all numbers, number is seperated by `,` , line is seperated by `Enter`. 
 > * Use `/` to end input of one matrix.
 > * Use `end/` to end input.
 > 
-example (multiply 3 matrix):
+Example (multiply 3 matrix):
 ```
 \#       N.1 matrix:
 1,2,3
@@ -27,18 +27,18 @@ example (multiply 3 matrix):
 end/
 ```
 ### 2. mode file
-> * need to define file name (path+partial name) for multiplication result. file name partially contains time info.
+> * Need to define file name (path+partial name) for multiplication result. File name automatically contains timestamp.
 ```
 resultFile     = "./res_"
 ```
-> * need to specify file names, and numbers of file.
-> * for now we used a simple list []string to manager matrix files (numbers < 7).
+> * Need to specify input file names, and the number of files.
+> * For now we used a simple list []string to manager matrix files (number of files < 7).
 
-example:
+Example:
 ```
 matriceA_raw   = "matrix_input_txt/test_set1/A_1000x500.txt"
 ...
-matriceNbr     = 3 
+matriceNbr     = 7 
 var matrix_raw_list = [...]string{ // TODO: read .txt names from a file?
 	matriceA_raw,
 	matriceB_raw,
@@ -56,4 +56,4 @@ var matrix_raw_list = [...]string{ // TODO: read .txt names from a file?
 -1,-2,3.3
 ``` 
 ### 3. exception handle
-if one step of multiplication is not possible, previous multiplication result will be saved. (or 1st matrix if 1st multiplication is already not doable)
+If one step of multiplication is not possible, previous multiplication result will be saved. (or 1st matrix if 1st multiplication is already not doable)
