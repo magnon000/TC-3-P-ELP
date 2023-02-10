@@ -19,16 +19,16 @@ const (
 	buffer_size    = 10240 // max size for one buffer
 	start_phrase   = "\nsend_start\n"
 	end_phrase     = "\nsend_end\n"
-	matriceA_raw   = "matrix_input_txt/test_set1/A_1000x500.txt"
-	matriceB_raw   = "matrix_input_txt/test_set1/B_500x1000.txt"
-	matriceC_raw   = "matrix_input_txt/test_set1/C_1000x1000.txt"
-	matriceD_raw   = "matrix_input_txt/end.txt"
-	matriceE_raw   = "matrix_input_txt/end.txt"
-	matriceF_raw   = "matrix_input_txt/end.txt"
-	matriceG_raw   = "matrix_input_txt/end.txt"
+	matriceA_raw   = "matrix_input_txt/test_set0/a.txt"
+	matriceB_raw   = "matrix_input_txt/test_set0/b.txt"
+	matriceC_raw   = "matrix_input_txt/test_set0/c.txt"
+	matriceD_raw   = "matrix_input_txt/test_set0/d.txt"
+	matriceE_raw   = "matrix_input_txt/test_set0/e.txt"
+	matriceF_raw   = "matrix_input_txt/test_set0/f.txt"
+	matriceG_raw   = "matrix_input_txt/test_set0/g.txt"
 	matriceFin_raw = "matrix_input_txt/end.txt" // use this if matrix number is not pair
-	matriceNbr     = 3                          // ! assert matriceNbr pair
-	resultFile     = "./res.txt"
+	matriceNbr     = 7                          // ! assert matriceNbr pair
+	resultFile     = "./res_"
 )
 
 // ! assert matrix_raw_list pair
@@ -152,10 +152,10 @@ func main() {
 	endReception := time.Now()
 	receptionTime := endReception.Sub(startReception)
 	fmt.Println("Durée de la réception :", receptionTime)
-
+	// conn_temp := conn
+	Save(resultFile+strings.ReplaceAll(time.Now().String()[0:19], ":", "-")+".txt", string(full_buf))
 	defer conn.Close()
-
-	Save(resultFile, string(full_buf))
+	// Save(resultFile+conn_temp.LocalAddr().String()+".txt", string(full_buf))
 
 	endClientProgram := time.Now()
 	fmt.Println("Durée totale complète :", endClientProgram.Sub(startClientProgram))
