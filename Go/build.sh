@@ -1,4 +1,4 @@
 #!/usr/bin/bash
 
-go build server_TCP.go
-go build client_TCP.go
+go build start_server.go
+go build start_client.go
