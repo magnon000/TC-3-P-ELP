@@ -1,0 +1,59 @@
+# Golang parallel Matrix multiplication (server-client TCP)
+- [Golang parallel Matrix multiplication (server-client TCP)](#golang-parallel-matrix-multiplication-server-client-tcp)
+	- [Usage](#usage)
+		- [1. mode input](#1-mode-input)
+		- [2. mode file](#2-mode-file)
+		- [3. exception handle](#3-exception-handle)
+---
+## Usage
+### 1. mode input
+> * manual input all numbers, number is seperated by `,` , line is seperated by `Enter`. 
+> * Use `/` to end input of one matrix.
+> * Use `end/` to end input.
+> 
+example (multiply 3 matrix):
+```
+\#       N.1 matrix:
+1,2,3
+1,2,3/
+\#       N.2 matrix:
+1,2
+-1,-2
+1,2/
+\#       N.3 matrix:
+1,0
+0,1/
+\#       N.4 matrix:
+end/
+```
+### 2. mode file
+> * need to define file name (path+partial name) for multiplication result. file name partially contains time info.
+```
+resultFile     = "./res_"
+```
+> * need to specify file names, and numbers of file.
+> * for now we used a simple list []string to manager matrix files (numbers < 7).
+
+example:
+```
+matriceA_raw   = "matrix_input_txt/test_set1/A_1000x500.txt"
+...
+matriceNbr     = 3 
+var matrix_raw_list = [...]string{ // TODO: read .txt names from a file?
+	matriceA_raw,
+	matriceB_raw,
+	matriceC_raw,
+	matriceD_raw,
+	matriceE_raw,
+	matriceF_raw,
+	matriceG_raw,
+	matriceFin_raw}
+```
+> * content in input file use following format: (file ends without empty lines)
+> 
+```
+1,-2.1,-3
+-1,-2,3.3
+``` 
+### 3. exception handle
+if one step of multiplication is not possible, previous multiplication result will be saved. (or 1st matrix if 1st multiplication is already not doable)
